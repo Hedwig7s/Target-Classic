@@ -4,7 +4,7 @@ import 'connection.dart';
 class Server {
   final String host;
   final int port;
-  final List<Connection> connections = [];
+  final Map<int, Connection> connections = {};
   int connectionsEver = 0;
   ServerSocket? socket;
 
@@ -23,19 +23,9 @@ class Server {
         print(
           'Connection from ${socket.remoteAddress.address}:${socket.remotePort}',
         );
-        socket.listen(
-          (data) {
-            print('Received data: ${String.fromCharCodes(data)}');
-            socket.write('Echo: ${String.fromCharCodes(data)}');
-          },
-          onDone: () {
-            print('Client disconnected');
-            socket.close();
-          },
-          onError: (error) {
-            print('Error: $error');
-          },
-        );
+        int id = connectionsEver++;
+        Connection connection = Connection(id, socket);
+        connections[id] = connection;
       },
       onError: (error) {
         print('Error: $error');

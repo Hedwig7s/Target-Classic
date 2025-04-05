@@ -1,3 +1,4 @@
+import 'connection.dart';
 import 'dataparser/parser.dart';
 
 abstract class Packet<KeyEnum extends Enum> {
@@ -12,8 +13,10 @@ mixin SendablePacket<KeyEnum extends Enum> on Packet<KeyEnum> {
     return parser.encode(data);
   }
 
-  void send() async {
-    // TODO: Implement send logic
+  void send(Connection connection, Map<KeyEnum, dynamic> data) async {
+    if (connection.closed) return;
+    var encodedData = encode(data);
+    connection.write(encodedData);
   }
 }
 
@@ -22,7 +25,5 @@ mixin ReceivablePacket<KeyEnum extends Enum> on Packet<KeyEnum> {
     return parser.decode(data);
   }
 
-  void receive() async {
-    // TODO: Implement receive logic
-  }
+  Future<void> receive(Connection connection, List<int> data);
 }
