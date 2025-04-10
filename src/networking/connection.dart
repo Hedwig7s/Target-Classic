@@ -1,9 +1,9 @@
 import 'dart:io';
-import 'package:buffer/buffer.dart';
 
-import 'constants.dart';
+import '../constants.dart';
 import 'packet.dart';
 import 'protocol.dart';
+import '../registries/serviceregistry.dart';
 
 class Connection {
   final int id;
@@ -13,8 +13,9 @@ class Connection {
   bool socketClosed = false;
   bool processingIncoming = false;
   Protocol? protocol;
+  ServiceRegistry? serviceRegistry;
 
-  Connection(this.id, this.socket) {
+  Connection(this.id, this.socket, {this.serviceRegistry}) {
     socket.listen(
       (data) {
         buffer.addAll(data);

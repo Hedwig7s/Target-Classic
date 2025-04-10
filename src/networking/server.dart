@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'connection.dart';
+import '../registries/serviceregistry.dart';
 
 class Server {
   final String host;
@@ -7,8 +8,9 @@ class Server {
   final Map<int, Connection> connections = {};
   int connectionsEver = 0;
   ServerSocket? socket;
+  ServiceRegistry? serviceRegistry;
 
-  Server(this.host, this.port) {
+  Server(this.host, this.port, {this.serviceRegistry}) {
     if (host.isEmpty) {
       throw ArgumentError('Host cannot be empty');
     }

@@ -3,3 +3,4 @@ environment:
   sdk: '^3.7.0'
 dependencies:
   buffer: ^1.2.3
+  meta: ^1.16.0

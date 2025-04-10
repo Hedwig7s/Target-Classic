@@ -1,5 +1,5 @@
 import 'connection.dart';
-import 'dataparser/parser.dart';
+import '../dataparser/parser.dart';
 
 abstract class Packet<KeyEnum extends Enum> {
   int get id;
