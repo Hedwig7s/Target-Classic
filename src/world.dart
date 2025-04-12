@@ -80,4 +80,32 @@ class World implements Nameable<String> {
   int getBlockIndex(Vector3I pos) {
     return blocks[pos.x + pos.z * size.x + pos.y * size.x * size.z];
   }
+
+  void addEntity(Entity entity) {
+    int? id;
+    for (int i = 0; i <= 255; i++) {
+      if (!entities.containsKey(i)) {
+        id = i;
+        break;
+      }
+    }
+    if (id == null) {
+      throw Exception('No available ID for entity');
+    }
+    entities[id] = entity;
+    entity.world = this;
+    entity.worldId = id;
+  }
+
+  void removeEntity(Entity entity) {
+    if (entity.worldId == null ||
+        entity.world == null ||
+        entity.world != this ||
+        !entities.containsKey(entity.worldId)) {
+      throw Exception('Entity is not in this world');
+    }
+    entities.remove(entity.worldId);
+    entity.worldId = null;
+    entity.world = null;
+  }
 }

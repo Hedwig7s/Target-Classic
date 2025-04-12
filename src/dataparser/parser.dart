@@ -19,8 +19,8 @@ class DataParser<Key> {
       }
     }
   }
-  Map<Key, dynamic> decode(List<int> data) {
-    Map<Key, dynamic> out = {};
+  List<dynamic> decode(List<int> data) {
+    List<dynamic> out = [];
     ByteDataReader byteDataReader = ByteDataReader();
     byteDataReader.add(data);
     for (var entry in _entries) {
@@ -42,19 +42,19 @@ class DataParser<Key> {
             }
           }*/
         } catch (e) {
-          throw Exception("Error decoding entry ${entry.key}: $e");
+          throw Exception("Error decoding entry ${out.length}: $e");
         }
       }
     }
     return out;
   }
 
-  Future<Map<Key, dynamic>> decodeWaitOnData(
+  Future<List<dynamic>> decodeWaitOnData(
     ByteDataReader data, {
     Duration pollInterval = const Duration(milliseconds: 5),
     DateTime? timeout,
   }) async {
-    Map<Key, dynamic> out = {};
+    List<dynamic> out = [];
     for (var entry in _entries) {
       if (entry is EndiannessEntry) {
         endianness = entry.endianness;
@@ -66,7 +66,7 @@ class DataParser<Key> {
             if (e.toString().contains("Not enough bytes")) {
               if (timeout != null && DateTime.now().isAfter(timeout)) {
                 throw Exception(
-                  "Timeout while waiting for data for entry ${entry.key}",
+                  "Timeout while waiting for data for entry ${out.length}",
                 );
               }
               var remaining = data.remainingLength;
@@ -80,7 +80,7 @@ class DataParser<Key> {
               );
               continue;
             }
-            throw Exception("Error decoding entry ${entry.key}: $e");
+            throw Exception("Error decoding entry ${out.length}: $e");
           }
           break;
         }
@@ -89,16 +89,17 @@ class DataParser<Key> {
     return out;
   }
 
-  List<int> encode(Map<Key, dynamic> data) {
+  List<int> encode(List<dynamic> data) {
     ByteDataWriter byteDataWriter = ByteDataWriter();
-    for (var entry in _entries) {
+    for (int i = 0; i < _entries.length; i++) {
+      var entry = _entries[i];
       if (entry is EndiannessEntry) {
         endianness = entry.endianness;
       } else {
         try {
-          entry.encode(data, endianness, byteDataWriter);
+          entry.encode(data, i, endianness, byteDataWriter);
         } catch (e) {
-          throw Exception("Error encoding entry ${entry.key}: $e");
+          throw Exception("Error encoding entry ${i}: $e");
         }
       }
     }

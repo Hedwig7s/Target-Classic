@@ -1,13 +1,19 @@
 import 'datatypes.dart';
 import 'registries/incrementalregistry.dart';
-import 'registries/worldregistry.dart';
+import 'world.dart';
 
 class Entity implements IRRegisterable {
   EntityPosition position = EntityPosition(0, 0, 0, 0, 0);
-  Map<IncrementalRegistry, int> ids = {};
+  World? world;
+  final Map<IncrementalRegistry, int> ids = {};
   final String name;
   final String fancyName;
-  final Map<NamedRegistryWithDefault, int> worldIds = {};
+  int? worldId;
 
   Entity({required this.name, fancyName}) : fancyName = fancyName ?? name;
+
+  spawn(World world) {
+    this.world = world;
+    world.addEntity(this);
+  }
 }

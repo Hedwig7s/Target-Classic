@@ -7,5 +7,9 @@ class Protocol7 extends Protocol {
   int get version => 7;
   Map<PacketIds, Packet> get packets => {
     PacketIds.identification: IdentificationPacket7(),
+    PacketIds.ping: PingPacket7(),
+    PacketIds.levelInitialize: LevelInitializePacket7(),
+    PacketIds.levelDataChunk: LevelDataChunkPacket7(),
+    PacketIds.levelFinalize: LevelFinalizePacket7(),
   };
 }

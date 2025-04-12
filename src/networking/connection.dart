@@ -35,6 +35,7 @@ class Connection {
 
   void processIncoming() async {
     if (processingIncoming) return;
+    processingIncoming = true;
     while (buffer.length > 0) {
       int id = buffer[0];
       if (id < 0 || id >= PacketIds.values.length) {
@@ -78,7 +79,8 @@ class Connection {
         this.close();
         return;
       }
-      await packet.receive(this, packetData);
+      ReceivablePacket receivablePacket = packet as ReceivablePacket;
+      await receivablePacket.receive(this, packetData);
     }
     processingIncoming = false;
   }

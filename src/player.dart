@@ -1,5 +1,8 @@
 import 'entity.dart';
 import 'networking/connection.dart';
+import 'networking/packet.dart';
+import 'networking/protocol.dart';
+import 'protocols/7/packetdata.dart';
 import 'registries/namedregistry.dart';
 import 'registries/serviceregistry.dart';
 import 'world.dart';
@@ -7,15 +10,16 @@ import 'world.dart';
 class Player implements Nameable<String> {
   String name;
   String fancyName;
-  Connection connection;
+  Connection? connection;
   ServiceRegistry? serviceRegistry;
   Entity? entity;
   String get id => name;
+  World? world;
 
   Player({
     required this.name,
     required this.fancyName,
-    required this.connection,
+    this.connection,
     this.serviceRegistry,
     defaultEntity = true,
     entity,
@@ -29,5 +33,14 @@ class Player implements Nameable<String> {
     this.entity = entity;
   }
 
-  void loadWorld(World world) async {}
+  void loadWorld(World world) async {
+    if (connection?.protocol != null) {
+      var packets = await connection!.protocol!.packets;
+      var levelInitPacket =
+          packets[PacketIds.levelInitialize]
+              as SendablePacket<LevelInitializePacketData>;
+      levelInitPacket.send(connection!, LevelInitializePacketData());
+    }
+    this.world = world;
+  }
 }

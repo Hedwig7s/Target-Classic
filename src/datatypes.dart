@@ -64,8 +64,8 @@ class EntityPosition {
   final int yaw;
   final int pitch;
 
-  EntityPosition(x, y, z, this.yaw, this.pitch)
-    : position = Vector3(x.toT(), y.toT(), z.toT());
+  EntityPosition(double x, double y, double z, this.yaw, this.pitch)
+    : position = Vector3<double>(x, y, z);
   EntityPosition.fromVector3({
     required this.position,
     required this.yaw,

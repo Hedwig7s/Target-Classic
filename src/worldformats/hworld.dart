@@ -1,83 +1,178 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import '../dataparser/builder.dart';
+import '../dataparser/parser.dart';
 import 'worldformat.dart';
 import '../world.dart';
 import '../datatypes.dart';
 
-enum HEADERV2_PARSER_KEYS {
-  VERSION,
-  SIZEX,
-  SIZEY,
-  SIZEZ,
-  SPAWNX,
-  SPAWNY,
-  SPAWNZ,
-  SPAWNYAW,
-  SPAWNPITCH,
+class HeaderV2 {
+  static DataParser _parser =
+      DataParserBuilder()
+          .uint32() // version
+          .uint16() // sizeX
+          .uint16() // sizeY
+          .uint16() // sizeZ
+          .uint16() // spawnX
+          .uint16() // spawnY
+          .uint16() // spawnZ
+          .uint8() // spawnYaw
+          .uint8() // spawnPitch
+          .build();
+
+  final int version;
+  final int sizeX;
+  final int sizeY;
+  final int sizeZ;
+  final int spawnX;
+  final int spawnY;
+  final int spawnZ;
+  final int spawnYaw;
+  final int spawnPitch;
+
+  HeaderV2({
+    required this.version,
+    required this.sizeX,
+    required this.sizeY,
+    required this.sizeZ,
+    required this.spawnX,
+    required this.spawnY,
+    required this.spawnZ,
+    required this.spawnYaw,
+    required this.spawnPitch,
+  });
+
+  static HeaderV2 decodeFromData(List<int> data) {
+    var decoded = _parser.decode(data);
+    return HeaderV2(
+      version: decoded[0],
+      sizeX: decoded[1],
+      sizeY: decoded[2],
+      sizeZ: decoded[3],
+      spawnX: decoded[4],
+      spawnY: decoded[5],
+      spawnZ: decoded[6],
+      spawnYaw: decoded[7],
+      spawnPitch: decoded[8],
+    );
+  }
+
+  List<int> encode() {
+    return _parser.encode([
+      version,
+      sizeX,
+      sizeY,
+      sizeZ,
+      spawnX,
+      spawnY,
+      spawnZ,
+      spawnYaw,
+      spawnPitch,
+    ]);
+  }
 }
 
-enum HEADERV4_PARSER_KEYS {
-  VERSION,
-  IDENTIFIER,
-  SIZEX,
-  SIZEY,
-  SIZEZ,
-  SPAWNX,
-  SPAWNY,
-  SPAWNZ,
-  SPAWNYAW,
-  SPAWNPITCH,
-  BLOCK_DATA_SIZE,
+class HeaderV4 extends HeaderV2 {
+  static DataParser _parser =
+      DataParserBuilder()
+          .uint32() // version
+          .fixedString(6, Encoding.getByName('ascii')!) // identifier
+          .uint16() // sizeX
+          .uint16() // sizeY
+          .uint16() // sizeZ
+          .uint16() // spawnX
+          .uint16() // spawnY
+          .uint16() // spawnZ
+          .uint8() // spawnYaw
+          .uint8() // spawnPitch
+          .uint32() // blockDataSize
+          .build();
+
+  final String identifier;
+  final int blockDataSize;
+
+  HeaderV4({
+    required version,
+    required this.identifier,
+    required sizeX,
+    required sizeY,
+    required sizeZ,
+    required spawnX,
+    required spawnY,
+    required spawnZ,
+    required spawnYaw,
+    required spawnPitch,
+    required this.blockDataSize,
+  }) : super(
+         version: version,
+         sizeX: sizeX,
+         sizeY: sizeY,
+         sizeZ: sizeZ,
+         spawnX: spawnX,
+         spawnY: spawnY,
+         spawnZ: spawnZ,
+         spawnYaw: spawnYaw,
+         spawnPitch: spawnPitch,
+       );
+
+  static HeaderV4 decodeFromData(List<int> data) {
+    var decoded = _parser.decode(data);
+    return HeaderV4(
+      version: decoded[0],
+      identifier: decoded[1],
+      sizeX: decoded[2],
+      sizeY: decoded[3],
+      sizeZ: decoded[4],
+      spawnX: decoded[5],
+      spawnY: decoded[6],
+      spawnZ: decoded[7],
+      spawnYaw: decoded[8],
+      spawnPitch: decoded[9],
+      blockDataSize: decoded[10],
+    );
+  }
+
+  @override
+  List<int> encode() {
+    return _parser.encode([
+      version,
+      identifier,
+      sizeX,
+      sizeY,
+      sizeZ,
+      spawnX,
+      spawnY,
+      spawnZ,
+      spawnYaw,
+      spawnPitch,
+      blockDataSize,
+    ]);
+  }
 }
 
-final HEADERV2_PARSER =
-    new DataParserBuilder<HEADERV2_PARSER_KEYS>()
-        .uint32(HEADERV2_PARSER_KEYS.VERSION)
-        .uint16(HEADERV2_PARSER_KEYS.SIZEX)
-        .uint16(HEADERV2_PARSER_KEYS.SIZEY)
-        .uint16(HEADERV2_PARSER_KEYS.SIZEZ)
-        .uint16(HEADERV2_PARSER_KEYS.SPAWNX)
-        .uint16(HEADERV2_PARSER_KEYS.SPAWNY)
-        .uint16(HEADERV2_PARSER_KEYS.SPAWNZ)
-        .uint8(HEADERV2_PARSER_KEYS.SPAWNYAW)
-        .uint8(HEADERV2_PARSER_KEYS.SPAWNPITCH)
-        .build();
+class BlockData {
+  static DataParser _parser =
+      DataParserBuilder()
+          .uint8() // blockId
+          .uint8() // blockCount
+          .build();
 
-final HEADERV4_PARSER =
-    new DataParserBuilder<HEADERV4_PARSER_KEYS>()
-        .uint32(HEADERV4_PARSER_KEYS.VERSION)
-        .fixedString(
-          HEADERV4_PARSER_KEYS.IDENTIFIER,
-          6,
-          Encoding.getByName('ascii')!,
-        )
-        .uint16(HEADERV4_PARSER_KEYS.SIZEX)
-        .uint16(HEADERV4_PARSER_KEYS.SIZEY)
-        .uint16(HEADERV4_PARSER_KEYS.SIZEZ)
-        .uint16(HEADERV4_PARSER_KEYS.SPAWNX)
-        .uint16(HEADERV4_PARSER_KEYS.SPAWNY)
-        .uint16(HEADERV4_PARSER_KEYS.SPAWNZ)
-        .uint8(HEADERV4_PARSER_KEYS.SPAWNYAW)
-        .uint8(HEADERV4_PARSER_KEYS.SPAWNPITCH)
-        .uint32(HEADERV4_PARSER_KEYS.BLOCK_DATA_SIZE)
-        .build();
+  final int blockId;
+  final int blockCount;
 
-enum BLOCK_PARSER_KEYS { BLOCK_ID, BLOCK_COUNT }
+  BlockData({required this.blockId, required this.blockCount});
 
-final BLOCK_PARSER =
-    new DataParserBuilder<BLOCK_PARSER_KEYS>()
-        .uint8(BLOCK_PARSER_KEYS.BLOCK_ID)
-        .uint8(BLOCK_PARSER_KEYS.BLOCK_COUNT)
-        .build();
+  static BlockData decodeFromData(List<int> data) {
+    var decoded = _parser.decode(data);
+    return BlockData(blockId: decoded[0], blockCount: decoded[1]);
+  }
 
-enum VERSION_PARSER_KEYS { VERSION }
-
-final VERSION_PARSER =
-    new DataParserBuilder<VERSION_PARSER_KEYS>()
-        .uint32(VERSION_PARSER_KEYS.VERSION)
-        .build();
+  List<int> encode() {
+    return _parser.encode([blockId, blockCount]);
+  }
+}
 
 class HWorldFormat extends WorldFormat {
   HWorldFormat._privateConstructor();
@@ -86,6 +181,7 @@ class HWorldFormat extends WorldFormat {
     return _instance;
   }
   List<String> get extensions => ['hworld'];
+
   @override
   bool identify(List<int> data) {
     return data.length > 10 &&
@@ -93,7 +189,8 @@ class HWorldFormat extends WorldFormat {
   }
 
   WorldBuilder deserialize(List<int> data) {
-    int version = VERSION_PARSER.decode(data)[VERSION_PARSER_KEYS.VERSION];
+    var version = ByteData.sublistView(Uint8List.fromList(data)).getUint32(0);
+
     int sizeX,
         sizeY,
         sizeZ,
@@ -103,105 +200,125 @@ class HWorldFormat extends WorldFormat {
         spawnYaw,
         spawnPitch,
         blockDataSize;
+    int headerSize;
+
     if (version == 4) {
-      final header = HEADERV4_PARSER.decode(data);
-      sizeX = header[HEADERV4_PARSER_KEYS.SIZEX];
-      sizeY = header[HEADERV4_PARSER_KEYS.SIZEY];
-      sizeZ = header[HEADERV4_PARSER_KEYS.SIZEZ];
-      spawnX = header[HEADERV4_PARSER_KEYS.SPAWNX];
-      spawnY = header[HEADERV4_PARSER_KEYS.SPAWNY];
-      spawnZ = header[HEADERV4_PARSER_KEYS.SPAWNZ];
-      spawnYaw = header[HEADERV4_PARSER_KEYS.SPAWNYAW];
-      spawnPitch = header[HEADERV4_PARSER_KEYS.SPAWNPITCH];
-      blockDataSize = header[HEADERV4_PARSER_KEYS.BLOCK_DATA_SIZE];
+      var header = HeaderV4.decodeFromData(data);
+      sizeX = header.sizeX;
+      sizeY = header.sizeY;
+      sizeZ = header.sizeZ;
+      spawnX = header.spawnX;
+      spawnY = header.spawnY;
+      spawnZ = header.spawnZ;
+      spawnYaw = header.spawnYaw;
+      spawnPitch = header.spawnPitch;
+      blockDataSize = header.blockDataSize;
+      headerSize = HeaderV4._parser.size!;
     } else if (version >= 2 && version < 4) {
-      final header = HEADERV2_PARSER.decode(data);
-      sizeX = header[HEADERV2_PARSER_KEYS.SIZEX];
-      sizeY = header[HEADERV2_PARSER_KEYS.SIZEY];
-      sizeZ = header[HEADERV2_PARSER_KEYS.SIZEZ];
-      spawnX = header[HEADERV2_PARSER_KEYS.SPAWNX];
-      spawnY = header[HEADERV2_PARSER_KEYS.SPAWNY];
-      spawnZ = header[HEADERV2_PARSER_KEYS.SPAWNZ];
-      spawnYaw = header[HEADERV2_PARSER_KEYS.SPAWNYAW];
-      spawnPitch = header[HEADERV2_PARSER_KEYS.SPAWNPITCH];
-      blockDataSize = data.length - HEADERV2_PARSER.size!;
+      var header = HeaderV2.decodeFromData(data);
+      sizeX = header.sizeX;
+      sizeY = header.sizeY;
+      sizeZ = header.sizeZ;
+      spawnX = header.spawnX;
+      spawnY = header.spawnY;
+      spawnZ = header.spawnZ;
+      spawnYaw = header.spawnYaw;
+      spawnPitch = header.spawnPitch;
+      blockDataSize = data.length - HeaderV2._parser.size!;
+      headerSize = HeaderV2._parser.size!;
     } else {
       throw Exception('Unsupported version: $version');
     }
+
     var extractedBlocks = data.sublist(
-      version == 4 ? HEADERV4_PARSER.size! : HEADERV2_PARSER.size!,
-      version == 4 ? HEADERV4_PARSER.size! + blockDataSize : data.length,
+      headerSize,
+      version == 4 ? headerSize + blockDataSize : data.length,
     );
+
     if (version >= 3) {
       ZLibDecoder zlib = new ZLibDecoder();
       extractedBlocks = zlib.convert(extractedBlocks);
     }
+
     List<int> blocks = List.filled(sizeX * sizeY * sizeZ, 0);
-    for (int i = 0; i < extractedBlocks.length; i += 3) {
-      final block = BLOCK_PARSER.decode(extractedBlocks.sublist(i, i + 2));
-      int id = block[BLOCK_PARSER_KEYS.BLOCK_ID];
-      int count = block[BLOCK_PARSER_KEYS.BLOCK_COUNT];
+
+    for (int i = 0; i < extractedBlocks.length; i += 2) {
+      if (i + 2 > extractedBlocks.length) break;
+
+      final block = BlockData.decodeFromData(extractedBlocks.sublist(i, i + 2));
+      int id = block.blockId;
+      int count = block.blockCount;
+
       if (id == 0) {
         continue;
       }
+
       for (int j = 0; j < count; j++) {
-        blocks[i + j] = id;
+        if (i / 2 + j < blocks.length) {
+          blocks[i ~/ 2 + j] = id;
+        }
       }
     }
+
     return WorldBuilder(
       name: null,
       size: Vector3I(sizeX, sizeY, sizeZ),
-      spawnPoint: EntityPosition(spawnX, spawnY, spawnZ, spawnYaw, spawnPitch),
+      spawnPoint: EntityPosition(
+        spawnX.toDouble(),
+        spawnY.toDouble(),
+        spawnZ.toDouble(),
+        spawnYaw,
+        spawnPitch,
+      ),
       blocks: blocks,
     );
   }
 
   List<int> serialize(World world) {
-    List<int> data = [];
-    int? id, count;
-    List<int> blocks = [];
+    List<int> blockData = [];
+    int? currentId;
+    int count = 0;
+
     for (int i = 0; i < world.blocks.length; i++) {
-      if (world.blocks[i] == id && id != null && count != null) {
+      if (world.blocks[i] == currentId && currentId != null) {
         count++;
       } else {
-        if (count != null && count > 0) {
-          blocks.addAll(
-            BLOCK_PARSER.encode({
-              BLOCK_PARSER_KEYS.BLOCK_ID: id,
-              BLOCK_PARSER_KEYS.BLOCK_COUNT: count,
-            }),
+        if (count > 0) {
+          blockData.addAll(
+            BlockData(blockId: currentId!, blockCount: count).encode(),
           );
         }
-        id = world.blocks[i];
+        currentId = world.blocks[i];
         count = 1;
       }
     }
-    if (count != null && count > 0) {
-      blocks.addAll(
-        BLOCK_PARSER.encode({
-          BLOCK_PARSER_KEYS.BLOCK_ID: id,
-          BLOCK_PARSER_KEYS.BLOCK_COUNT: count,
-        }),
+
+    if (count > 0) {
+      blockData.addAll(
+        BlockData(blockId: currentId!, blockCount: count).encode(),
       );
     }
+
     ZLibEncoder zlib = new ZLibEncoder();
-    List<int> compressedBlocks = zlib.convert(blocks);
-    data.addAll(
-      HEADERV4_PARSER.encode({
-        HEADERV4_PARSER_KEYS.VERSION: 4,
-        HEADERV4_PARSER_KEYS.IDENTIFIER: 'HWORLD',
-        HEADERV4_PARSER_KEYS.SIZEX: world.size.x,
-        HEADERV4_PARSER_KEYS.SIZEY: world.size.y,
-        HEADERV4_PARSER_KEYS.SIZEZ: world.size.z,
-        HEADERV4_PARSER_KEYS.SPAWNX: world.spawnPoint.x,
-        HEADERV4_PARSER_KEYS.SPAWNY: world.spawnPoint.y,
-        HEADERV4_PARSER_KEYS.SPAWNZ: world.spawnPoint.z,
-        HEADERV4_PARSER_KEYS.SPAWNYAW: world.spawnPoint.yaw,
-        HEADERV4_PARSER_KEYS.SPAWNPITCH: world.spawnPoint.pitch,
-        HEADERV4_PARSER_KEYS.BLOCK_DATA_SIZE: compressedBlocks.length,
-      }),
+    List<int> compressedBlocks = zlib.convert(blockData);
+
+    HeaderV4 header = HeaderV4(
+      version: 4,
+      identifier: 'HWORLD',
+      sizeX: world.size.x,
+      sizeY: world.size.y,
+      sizeZ: world.size.z,
+      spawnX: world.spawnPoint.x.round(),
+      spawnY: world.spawnPoint.y.round(),
+      spawnZ: world.spawnPoint.z.round(),
+      spawnYaw: world.spawnPoint.yaw,
+      spawnPitch: world.spawnPoint.pitch,
+      blockDataSize: compressedBlocks.length,
     );
-    data.addAll(compressedBlocks);
-    return data;
+
+    List<int> result = header.encode();
+    result.addAll(compressedBlocks);
+
+    return result;
   }
 }
