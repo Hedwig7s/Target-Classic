@@ -11,6 +11,7 @@ import '../datatypes.dart';
 class HeaderV2 {
   static DataParser _parser =
       DataParserBuilder()
+          .littleEndian()
           .uint32() // version
           .uint16() // sizeX
           .uint16() // sizeY
@@ -77,6 +78,7 @@ class HeaderV2 {
 class HeaderV4 extends HeaderV2 {
   static DataParser _parser =
       DataParserBuilder()
+          .littleEndian()
           .uint32() // version
           .fixedString(6, Encoding.getByName('ascii')!) // identifier
           .uint16() // sizeX
@@ -155,8 +157,9 @@ class HeaderV4 extends HeaderV2 {
 class BlockData {
   static DataParser _parser =
       DataParserBuilder()
+          .littleEndian()
           .uint8() // blockId
-          .uint8() // blockCount
+          .uint32() // blockCount
           .build();
 
   final int blockId;
@@ -189,7 +192,9 @@ class HWorldFormat extends WorldFormat {
   }
 
   WorldBuilder deserialize(List<int> data) {
-    var version = ByteData.sublistView(Uint8List.fromList(data)).getUint32(0);
+    var version = ByteData.sublistView(
+      Uint8List.fromList(data),
+    ).getUint32(0, Endian.little);
 
     int sizeX,
         sizeY,
@@ -232,7 +237,7 @@ class HWorldFormat extends WorldFormat {
 
     var extractedBlocks = data.sublist(
       headerSize,
-      version == 4 ? headerSize + blockDataSize : data.length,
+      version == 4 ? headerSize + blockDataSize : null,
     );
 
     if (version >= 3) {
@@ -241,22 +246,14 @@ class HWorldFormat extends WorldFormat {
     }
 
     List<int> blocks = List.filled(sizeX * sizeY * sizeZ, 0);
-
-    for (int i = 0; i < extractedBlocks.length; i += 2) {
-      if (i + 2 > extractedBlocks.length) break;
-
-      final block = BlockData.decodeFromData(extractedBlocks.sublist(i, i + 2));
+    int offset = 0;
+    for (int i = 0; i < extractedBlocks.length; i += 5) {
+      final block = BlockData.decodeFromData(extractedBlocks.sublist(i, i + 5));
       int id = block.blockId;
       int count = block.blockCount;
 
-      if (id == 0) {
-        continue;
-      }
-
       for (int j = 0; j < count; j++) {
-        if (i / 2 + j < blocks.length) {
-          blocks[i ~/ 2 + j] = id;
-        }
+        blocks[offset++] = id;
       }
     }
 

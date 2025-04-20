@@ -44,12 +44,12 @@ class DataParserBuilder {
     return this;
   }
 
-  DataParserBuilder float({bool doublePrecision = false}) {
+  DataParserBuilder float32({bool doublePrecision = false}) {
     addEntry(new EntryFloat(doublePrecision: doublePrecision));
     return this;
   }
 
-  DataParserBuilder doubleFloat() {
+  DataParserBuilder float64() {
     addEntry(new EntryFloat(doublePrecision: true));
     return this;
   }

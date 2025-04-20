@@ -41,8 +41,11 @@ class DataParser<Key> {
               );
             }
           }*/
-        } catch (e) {
-          throw Exception("Error decoding entry ${out.length}: $e");
+        } catch (e, stackTrace) {
+          Error.throwWithStackTrace(
+            Exception("Error decoding entry ${out.length}: $e"),
+            stackTrace,
+          );
         }
       }
     }
@@ -62,7 +65,7 @@ class DataParser<Key> {
         while (true) {
           try {
             entry.decode(data, endianness, out);
-          } catch (e) {
+          } catch (e, stackTrace) {
             if (e.toString().contains("Not enough bytes")) {
               if (timeout != null && DateTime.now().isAfter(timeout)) {
                 throw Exception(
@@ -80,7 +83,10 @@ class DataParser<Key> {
               );
               continue;
             }
-            throw Exception("Error decoding entry ${out.length}: $e");
+            Error.throwWithStackTrace(
+              Exception("Error decoding entry ${out.length}: $e"),
+              stackTrace,
+            );
           }
           break;
         }
@@ -91,15 +97,21 @@ class DataParser<Key> {
 
   List<int> encode(List<dynamic> data) {
     ByteDataWriter byteDataWriter = ByteDataWriter();
+    int offset = 0;
     for (int i = 0; i < _entries.length; i++) {
       var entry = _entries[i];
       if (entry is EndiannessEntry) {
         endianness = entry.endianness;
       } else {
         try {
-          entry.encode(data, i, endianness, byteDataWriter);
-        } catch (e) {
-          throw Exception("Error encoding entry ${i}: $e");
+          entry.encode(data, offset++, endianness, byteDataWriter);
+        } catch (e, stackTrace) {
+          Error.throwWithStackTrace(
+            Exception(
+              "Error encoding entry ${entry.runtimeType.toString()} ${i}: $e",
+            ),
+            stackTrace,
+          );
         }
       }
     }

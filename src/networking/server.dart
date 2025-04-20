@@ -26,7 +26,11 @@ class Server {
           'Connection from ${socket.remoteAddress.address}:${socket.remotePort}',
         );
         int id = connectionsEver++;
-        Connection connection = Connection(id, socket);
+        Connection connection = Connection(
+          id,
+          socket,
+          serviceRegistry: serviceRegistry,
+        );
         connections[id] = connection;
       },
       onError: (error) {

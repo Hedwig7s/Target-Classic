@@ -1,4 +1,5 @@
 import 'src/networking/server.dart';
+import 'src/registries/registryextras.dart';
 import 'src/registries/serviceregistry.dart';
 
 void main() async {

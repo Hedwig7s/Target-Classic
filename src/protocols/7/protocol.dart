@@ -11,5 +11,7 @@ class Protocol7 extends Protocol {
     PacketIds.levelInitialize: LevelInitializePacket7(),
     PacketIds.levelDataChunk: LevelDataChunkPacket7(),
     PacketIds.levelFinalize: LevelFinalizePacket7(),
+    PacketIds.setBlockClient: SetBlockClientPacket7(),
+    PacketIds.setBlockServer: SetBlockServerPacket7(),
   };
 }

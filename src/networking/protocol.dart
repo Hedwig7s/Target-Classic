@@ -9,6 +9,17 @@ enum PacketIds {
   levelInitialize,
   levelDataChunk,
   levelFinalize,
+  setBlockClient,
+  setBlockServer,
+  spawnPlayer,
+  setPositionAndOrientation,
+  positionAndOrientationUpdate,
+  positionUpdate,
+  orientationUpdate,
+  despawnPlayer,
+  message,
+  disconnectPlayer,
+  updateUserType,
 }
 
 abstract class Protocol {

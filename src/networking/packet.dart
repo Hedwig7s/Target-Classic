@@ -7,9 +7,7 @@ abstract class Packet {
 }
 
 mixin SendablePacket<DataType extends PacketData> {
-  List<int> encode(DataType data) {
-    return data.encode();
-  }
+  List<int> encode(DataType data);
 
   void send(Connection connection, DataType data) async {
     if (connection.closed) return;

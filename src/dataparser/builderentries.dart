@@ -57,9 +57,13 @@ class EntryFixedString extends DataParserEntry {
         value.length > 0 &&
         value.endsWith(padding!)) {
       int paddingEnd = value.length;
-      for (int i = 0; i < padding!.length; i++) {
-        if (value[i] != padding!) {
-          paddingEnd = i;
+      for (
+        int i = value.length - padding!.length;
+        i > 0;
+        i -= padding!.length
+      ) {
+        if (value.substring(i, i + padding!.length) != padding!) {
+          paddingEnd = i + padding!.length;
           break;
         }
       }
@@ -172,8 +176,9 @@ class EntryLengthPrefixedString extends DataParserEntry {
 
 class EntryRaw extends DataParserEntry {
   final int size;
+  final int padding;
 
-  EntryRaw({required this.size}) : super();
+  EntryRaw({required this.size, this.padding = 0}) : super();
 
   @override
   void decode(ByteDataReader data, Endian endianness, List out) {
@@ -189,6 +194,14 @@ class EntryRaw extends DataParserEntry {
       );
     }
     List<int> value = data[index];
+    if (value.length > size) {
+      throw ArgumentError('Raw data is too long');
+    }
+    if (value.length < size) {
+      List<int> newValue = List.filled(size, padding);
+      newValue.setAll(0, value);
+      value = newValue;
+    }
     out.write(value);
   }
 }
