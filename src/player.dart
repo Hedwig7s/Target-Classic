@@ -1,3 +1,5 @@
+import 'package:eventify/eventify.dart';
+
 import 'block.dart';
 import 'datatypes.dart';
 import 'entity.dart';
@@ -10,13 +12,14 @@ import 'registries/serviceregistry.dart';
 import 'world.dart';
 
 class Player implements Nameable<String> {
-  String name;
+  final String name;
   String fancyName;
   Connection? connection;
   ServiceRegistry? serviceRegistry;
   Entity? entity;
   String get id => name;
   World? world;
+  final EventEmitter emitter = EventEmitter();
 
   Player({
     required this.name,
@@ -55,6 +58,7 @@ class Player implements Nameable<String> {
         userType: 0,
       ),
     );
+    emitter.emit("identified");
   }
 
   void loadWorld(World world) async {
@@ -82,9 +86,8 @@ class Player implements Nameable<String> {
           sizeZ: world.size.z,
         ),
       );
-      world.emitter.on('setBlock', (
-        ({Vector3I position, BlockID block}) blockData,
-      ) {
+      EventCallback onSetBlock = (Event event, context) {
+        var blockData = event.eventData as ({Vector3I position, BlockID block});
         SendablePacket<SetBlockServerPacketData>? setBlockPacket =
             connection!.protocol?.packets[PacketIds.setBlockServer]
                 as SendablePacket<SetBlockServerPacketData>?;
@@ -103,8 +106,10 @@ class Player implements Nameable<String> {
             blockId: block.index,
           ),
         );
-      });
+      };
+      world.emitter.on('setBlock', null, onSetBlock);
     }
     this.world = world;
+    emitter.emit("worldLoaded", world);
   }
 }

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:events_emitter/emitters/event_emitter.dart';
+import 'package:eventify/eventify.dart';
 
 import 'block.dart';
 import 'datatypes.dart';
@@ -176,7 +176,7 @@ class World implements Nameable<String> {
       throw RangeError('Index $index is out of bounds for blocks array');
     }
     blocks[index] = block.index;
-    emitter.emit('setBlock', (position: pos, block: block));
+    emitter.emit('blockSet', (position: pos, block: block));
   }
 
   void addEntity(Entity entity) {
@@ -193,6 +193,7 @@ class World implements Nameable<String> {
     entities[id] = entity;
     entity.world = this;
     entity.worldId = id;
+    emitter.emit('entityAdded', entity);
   }
 
   void removeEntity(Entity entity) {
@@ -205,5 +206,6 @@ class World implements Nameable<String> {
     entities.remove(entity.worldId);
     entity.worldId = null;
     entity.world = null;
+    emitter.emit('entityRemoved', entity);
   }
 }

@@ -1,3 +1,4 @@
+import 'package:eventify/eventify.dart';
 import 'package:meta/meta.dart';
 
 abstract class Nameable<K> {
@@ -7,6 +8,7 @@ abstract class Nameable<K> {
 class NamedRegistry<K, V extends Nameable<K>> {
   @protected
   final Map<K, V> registry = {};
+  final EventEmitter emitter = EventEmitter();
 
   void register(V item) {
     if (registry.containsKey(item.name) && registry[item.name] != item) {

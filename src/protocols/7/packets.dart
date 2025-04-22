@@ -236,7 +236,7 @@ class SetBlockClientPacket7 extends Packet
   Future<void> receive(Connection connection, List<int> data) async {
     if (connection.player?.world == null) return;
     var decodedData = decode(data);
-    if (decodedData.mode > 1) {
+    if (decodedData.mode != 0 && decodedData.mode != 1) {
       print("Invalid mode: ${decodedData.mode}");
       return;
     }
