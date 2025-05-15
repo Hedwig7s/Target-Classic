@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:eventify/eventify.dart';
+
 import '../constants.dart';
 import '../player.dart';
 import 'packet.dart';
@@ -16,6 +18,7 @@ class Connection {
   Protocol? protocol;
   ServiceRegistry? serviceRegistry;
   Player? player;
+  EventEmitter emitter = EventEmitter();
 
   Connection(this.id, this.socket, {this.serviceRegistry}) {
     socket.listen(
@@ -27,7 +30,7 @@ class Connection {
         print('Client disconnected');
         socketClosed = true;
         if (closed) return;
-        socket.close();
+        close();
       },
       onError: (error) {
         this.onError(error);
@@ -110,5 +113,6 @@ class Connection {
     if (socketClosed) return;
     print('Closing connection $id');
     socket.destroy();
+    emitter.emit("closed", this);
   }
 }

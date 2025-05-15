@@ -92,6 +92,21 @@ class DataParserBuilder {
     return this;
   }
 
+  DataParserBuilder fixedPoint({
+    required int size,
+    required int fractionalBits,
+    bool signed = false,
+  }) {
+    addEntry(
+      new EntryFixedPoint(
+        size: size,
+        fractionalBits: fractionalBits,
+        signed: signed,
+      ),
+    );
+    return this;
+  }
+
   DataParserBuilder bytes(int size) {
     addEntry(new EntryRaw(size: size));
     return this;

@@ -1,5 +1,8 @@
+import 'package:eventify/eventify.dart';
+
 class ServiceRegistry {
   final Map<String, dynamic> _services = {};
+  final EventEmitter emitter = EventEmitter();
 
   T getService<T>(String name) {
     T? service = tryGetService<T>(name);
@@ -22,6 +25,7 @@ class ServiceRegistry {
       throw Exception('Service $name already registered');
     }
     _services[name] = service;
+    emitter.emit('register', this, service);
   }
 
   void unregisterService(String name) {
@@ -29,6 +33,7 @@ class ServiceRegistry {
       throw Exception('Service $name not found');
     }
     _services.remove(name);
+    emitter.emit('unregister', this, name);
   }
 
   void registerServices(Map<String, dynamic> services) {

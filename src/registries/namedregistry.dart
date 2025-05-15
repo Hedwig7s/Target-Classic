@@ -15,13 +15,17 @@ class NamedRegistry<K, V extends Nameable<K>> {
       throw ArgumentError('Item with name ${item.name} already exists');
     }
     registry[item.name] = item;
+    emitter.emit('register', this, item);
   }
 
   void unregister(V item) {
     if (registry.containsKey(item.name) && registry[item.name] == item) {
       registry.remove(item.name);
+      emitter.emit('unregister', this, item);
     } else if (registry.containsKey(item.name) && registry[item.name] != item) {
-      throw ArgumentError('Item with name ${item.name} already exists');
+      throw ArgumentError(
+        'Item with name ${item.name} exists but is not the same instance',
+      );
     }
     // Do nothing if the item is not registered
   }
@@ -29,6 +33,7 @@ class NamedRegistry<K, V extends Nameable<K>> {
   void unregisterByName(K name) {
     if (registry.containsKey(name)) {
       registry.remove(name);
+      emitter.emit('unregister', this, registry[name]);
     }
   }
 

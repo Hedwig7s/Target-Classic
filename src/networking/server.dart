@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:eventify/eventify.dart';
+
 import 'connection.dart';
 import '../registries/serviceregistry.dart';
 
@@ -9,6 +11,7 @@ class Server {
   int connectionsEver = 0;
   ServerSocket? socket;
   ServiceRegistry? serviceRegistry;
+  EventEmitter emitter = EventEmitter();
 
   Server(this.host, this.port, {this.serviceRegistry}) {
     if (host.isEmpty) {
@@ -32,6 +35,10 @@ class Server {
           serviceRegistry: serviceRegistry,
         );
         connections[id] = connection;
+        emitter.emit("connectionOpened", this, connection);
+        connection.emitter.on("closed", this, (Event event, context) {
+          this.emitter.emit("connectionClosed", this, connection);
+        });
       },
       onError: (error) {
         print('Error: $error');

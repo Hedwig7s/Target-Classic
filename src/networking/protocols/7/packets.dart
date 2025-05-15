@@ -1,16 +1,16 @@
-import '../../block.dart';
-import '../../datatypes.dart';
-import '../../networking/connection.dart';
-import '../../networking/packet.dart';
-import '../../player.dart';
-import '../../registries/namedregistry.dart';
-import '../../registries/registryextras.dart';
-import '../../registries/serviceregistry.dart';
-import '../../world.dart';
+import '../../../block.dart';
+import '../../../datatypes.dart';
+import '../../connection.dart';
+import '../../packet.dart';
+import '../../../player.dart';
+import '../../../registries/namedregistry.dart';
+import '../../../registries/registryextras.dart';
+import '../../../registries/serviceregistry.dart';
+import '../../../world.dart';
 import 'packetdata.dart';
 import 'dart:convert';
-import '../../dataparser/builder.dart';
-import '../../dataparser/parser.dart';
+import '../../../dataparser/builder.dart';
+import '../../../dataparser/parser.dart';
 
 class IdentificationPacket7 extends Packet
     with
@@ -282,5 +282,48 @@ class SetBlockServerPacket7 extends Packet
   @override
   List<int> encode(SetBlockServerPacketData data) {
     return parser.encode([data.id, data.x, data.y, data.z, data.blockId]);
+  }
+}
+
+class SpawnPlayerPacket7 extends Packet
+    with SendablePacket<SpawnPlayerPacketData> {
+  static final DataParser parser =
+      DataParserBuilder()
+          .bigEndian()
+          .uint8()
+          .sint8()
+          .fixedString(64, Encoding.getByName('ascii')!, padding: ' ')
+          .fixedPoint(size: 2, fractionalBits: 5, signed: true)
+          .fixedPoint(size: 2, fractionalBits: 5, signed: true)
+          .fixedPoint(size: 2, fractionalBits: 5, signed: true)
+          .uint8()
+          .uint8()
+          .build();
+  int id = 0x07;
+  int length = 74;
+  SpawnPlayerPacketData decode(List<int> data) {
+    var decodedData = parser.decode(data);
+    return SpawnPlayerPacketData(
+      playerId: decodedData[1],
+      name: decodedData[2],
+      x: decodedData[3],
+      y: decodedData[4],
+      z: decodedData[5],
+      yaw: decodedData[6],
+      pitch: decodedData[7],
+    );
+  }
+  @override
+  List<int> encode(SpawnPlayerPacketData data) {
+    return parser.encode([
+      data.id,
+      data.playerId,
+      data.name,
+      data.x,
+      data.y,
+      data.z,
+      data.yaw,
+      data.pitch,
+    ]);
   }
 }

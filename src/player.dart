@@ -6,7 +6,7 @@ import 'entity.dart';
 import 'networking/connection.dart';
 import 'networking/packet.dart';
 import 'networking/protocol.dart';
-import 'protocols/7/packetdata.dart';
+import 'networking/protocols/7/packetdata.dart';
 import 'registries/namedregistry.dart';
 import 'registries/serviceregistry.dart';
 import 'world.dart';
@@ -58,7 +58,7 @@ class Player implements Nameable<String> {
         userType: 0,
       ),
     );
-    emitter.emit("identified");
+    emitter.emit("identified", this);
   }
 
   void loadWorld(World world) async {
@@ -110,6 +110,6 @@ class Player implements Nameable<String> {
       world.emitter.on('setBlock', null, onSetBlock);
     }
     this.world = world;
-    emitter.emit("worldLoaded", world);
+    emitter.emit("worldLoaded", this, world);
   }
 }

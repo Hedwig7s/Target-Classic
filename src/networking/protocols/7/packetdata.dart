@@ -1,11 +1,14 @@
 abstract class PacketData {
-  abstract final int id;
+  final int id;
+
+  const PacketData({required this.id});
 
   @override
   String toString();
 }
 
 class IdentificationPacketData implements PacketData {
+  @override
   final int id;
   final int protocolVersion;
   final String name;
@@ -32,9 +35,9 @@ class IdentificationPacketData implements PacketData {
 
 class PingPacketData implements PacketData {
   @override
-  final int id = 0x01;
+  final int id;
 
-  PingPacketData();
+  PingPacketData({this.id = 0x01});
 
   @override
   String toString() {
@@ -44,9 +47,9 @@ class PingPacketData implements PacketData {
 
 class LevelInitializePacketData implements PacketData {
   @override
-  final int id = 0x02;
+  final int id;
 
-  LevelInitializePacketData();
+  LevelInitializePacketData({this.id = 0x02});
 
   @override
   String toString() {
@@ -56,12 +59,13 @@ class LevelInitializePacketData implements PacketData {
 
 class LevelDataChunkPacketData implements PacketData {
   @override
-  final int id = 0x03;
+  final int id;
   final int chunkLength;
   final List<int> chunkData;
   final int percentComplete;
 
   LevelDataChunkPacketData({
+    this.id = 0x03,
     required this.chunkLength,
     required this.chunkData,
     required this.percentComplete,
@@ -78,12 +82,13 @@ class LevelDataChunkPacketData implements PacketData {
 
 class LevelFinalizePacketData implements PacketData {
   @override
-  final int id = 0x04;
+  final int id;
   final int sizeX;
   final int sizeY;
   final int sizeZ;
 
   LevelFinalizePacketData({
+    this.id = 0x04,
     required this.sizeX,
     required this.sizeY,
     required this.sizeZ,
@@ -100,7 +105,7 @@ class LevelFinalizePacketData implements PacketData {
 
 class SetBlockClientPacketData implements PacketData {
   @override
-  final int id = 0x05;
+  final int id;
   final int x;
   final int y;
   final int z;
@@ -108,12 +113,14 @@ class SetBlockClientPacketData implements PacketData {
   final int blockId;
 
   SetBlockClientPacketData({
+    this.id = 0x05,
     required this.x,
     required this.y,
     required this.z,
     required this.mode,
     required this.blockId,
   });
+
   @override
   String toString() {
     return 'SetBlockClientPacketData{id: 0x${id.toRadixString(16).padLeft(2, '0')}, '
@@ -127,13 +134,14 @@ class SetBlockClientPacketData implements PacketData {
 
 class SetBlockServerPacketData implements PacketData {
   @override
-  final int id = 0x06;
+  final int id;
   final int x;
   final int y;
   final int z;
   final int blockId;
 
   SetBlockServerPacketData({
+    this.id = 0x06,
     required this.x,
     required this.y,
     required this.z,
@@ -152,7 +160,7 @@ class SetBlockServerPacketData implements PacketData {
 
 class SpawnPlayerPacketData implements PacketData {
   @override
-  final int id = 0x07;
+  final int id;
   final int playerId;
   final String name;
   final double x;
@@ -162,6 +170,7 @@ class SpawnPlayerPacketData implements PacketData {
   final int pitch;
 
   SpawnPlayerPacketData({
+    this.id = 0x07,
     required this.playerId,
     required this.name,
     required this.x,
@@ -170,6 +179,7 @@ class SpawnPlayerPacketData implements PacketData {
     required this.yaw,
     required this.pitch,
   });
+
   @override
   String toString() {
     return 'SpawnPlayerPacketData{id: 0x${id.toRadixString(16).padLeft(2, '0')}, '
@@ -185,7 +195,7 @@ class SpawnPlayerPacketData implements PacketData {
 
 class SetPositionAndOrientationPacketData implements PacketData {
   @override
-  final int id = 0x08;
+  final int id;
   final int playerId;
   final double x;
   final double y;
@@ -194,6 +204,7 @@ class SetPositionAndOrientationPacketData implements PacketData {
   final int pitch;
 
   SetPositionAndOrientationPacketData({
+    this.id = 0x08,
     required this.playerId,
     required this.x,
     required this.y,
@@ -216,7 +227,7 @@ class SetPositionAndOrientationPacketData implements PacketData {
 
 class PositionAndOrientationUpdate implements PacketData {
   @override
-  final int id = 0x09;
+  final int id;
   final int playerId;
   final double x;
   final double y;
@@ -225,6 +236,7 @@ class PositionAndOrientationUpdate implements PacketData {
   final int pitch;
 
   PositionAndOrientationUpdate({
+    this.id = 0x09,
     required this.playerId,
     required this.x,
     required this.y,
@@ -247,13 +259,14 @@ class PositionAndOrientationUpdate implements PacketData {
 
 class PositionUpdatePacketData implements PacketData {
   @override
-  final int id = 0x0A;
+  final int id;
   final int playerId;
   final double x;
   final double y;
   final double z;
 
   PositionUpdatePacketData({
+    this.id = 0x0A,
     required this.playerId,
     required this.x,
     required this.y,
@@ -272,12 +285,13 @@ class PositionUpdatePacketData implements PacketData {
 
 class OrientationUpdatePacketData implements PacketData {
   @override
-  final int id = 0x0B;
+  final int id;
   final int playerId;
   final int yaw;
   final int pitch;
 
   OrientationUpdatePacketData({
+    this.id = 0x0B,
     required this.playerId,
     required this.yaw,
     required this.pitch,
@@ -294,10 +308,10 @@ class OrientationUpdatePacketData implements PacketData {
 
 class DespawnPlayerPacketData implements PacketData {
   @override
-  final int id = 0x0C;
+  final int id;
   final int playerId;
 
-  DespawnPlayerPacketData({required this.playerId});
+  DespawnPlayerPacketData({this.id = 0x0C, required this.playerId});
 
   @override
   String toString() {
@@ -308,11 +322,12 @@ class DespawnPlayerPacketData implements PacketData {
 
 class MessagePacketData implements PacketData {
   @override
-  final int id = 0x0D;
+  final int id;
   final int playerId;
   final String message;
 
-  MessagePacketData({required this.playerId, required this.message});
+  MessagePacketData({this.id = 0x0D, required this.playerId, required this.message});
+
   @override
   String toString() {
     return 'MessagePacketData{id: 0x${id.toRadixString(16).padLeft(2, '0')}, '
@@ -323,9 +338,11 @@ class MessagePacketData implements PacketData {
 
 class DisconnectPlayerPacketData implements PacketData {
   @override
-  final int id = 0x0E;
+  final int id;
   final String reason;
-  DisconnectPlayerPacketData({required this.reason});
+
+  DisconnectPlayerPacketData({this.id = 0x0E, required this.reason});
+
   @override
   String toString() {
     return 'DisconnectPlayerPacketData{id: 0x${id.toRadixString(16).padLeft(2, '0')}, '
@@ -335,10 +352,11 @@ class DisconnectPlayerPacketData implements PacketData {
 
 class UpdateUserTypePacketData implements PacketData {
   @override
-  final int id = 0x0F;
+  final int id;
   final int userType;
 
-  UpdateUserTypePacketData({required this.userType});
+  UpdateUserTypePacketData({this.id = 0x0F, required this.userType});
+
   @override
   String toString() {
     return 'UpdateUserTypePacketData{id: 0x${id.toRadixString(16).padLeft(2, '0')}, '

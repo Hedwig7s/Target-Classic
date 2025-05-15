@@ -1,5 +1,5 @@
-import '../../networking/packet.dart';
-import '../../networking/protocol.dart';
+import '../../packet.dart';
+import '../../protocol.dart';
 import 'packets.dart';
 
 class Protocol7 extends Protocol {
@@ -13,5 +13,6 @@ class Protocol7 extends Protocol {
     PacketIds.levelFinalize: LevelFinalizePacket7(),
     PacketIds.setBlockClient: SetBlockClientPacket7(),
     PacketIds.setBlockServer: SetBlockServerPacket7(),
+    PacketIds.spawnPlayer: SpawnPlayerPacket7(),
   };
 }

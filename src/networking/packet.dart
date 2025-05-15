@@ -1,4 +1,4 @@
-import '../protocols/7/packetdata.dart';
+import 'protocols/7/packetdata.dart';
 import 'connection.dart';
 
 abstract class Packet {

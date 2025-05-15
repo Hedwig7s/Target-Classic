@@ -287,6 +287,45 @@ class EntryBool extends DataParserEntry {
   }
 }
 
+class EntryFixedPoint extends DataParserEntry {
+  final int size;
+  final bool signed;
+  final int fractionalBits;
+
+  EntryFixedPoint({
+    required this.size,
+    required this.signed,
+    required this.fractionalBits,
+  }) : super();
+
+  @override
+  void decode(ByteDataReader data, Endian endianness, List out) {
+    int rawValue = signed
+        ? data.readInt(size, endianness)
+        : data.readUint(size, endianness);
+    double value = rawValue / (1 << fractionalBits);
+    out.add(value);
+  }
+
+  @override
+  void encode(List data, int index, Endian endianness, ByteDataWriter out) {
+    if (data[index] is! num) {
+      throw ArgumentError('Value at index $index must be a numeric type');
+    }
+    double scaled = (data[index] as num).toDouble() * (1 << fractionalBits);
+    int intValue = scaled.round();
+    if (signed) {
+      out.writeInt(size, intValue, endianness);
+    } else {
+      if (intValue < 0) {
+        throw ArgumentError('Fixed point value must be non-negative for unsigned entry');
+      }
+      out.writeUint(size, intValue, endianness);
+    }
+  }
+}
+
+
 class EndiannessEntry extends DataParserEntry {
   final int size = 0;
   final Endian endianness;
