@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:eventify/eventify.dart';
+import 'package:events_emitter/emitters/event_emitter.dart';
 
 import '../constants.dart';
 import '../player.dart';
@@ -113,6 +113,6 @@ class Connection {
     if (socketClosed) return;
     print('Closing connection $id');
     socket.destroy();
-    emitter.emit("closed", this);
+    emitter.emit("closed");
   }
 }

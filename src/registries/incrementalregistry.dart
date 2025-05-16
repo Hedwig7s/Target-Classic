@@ -1,4 +1,4 @@
-import 'package:eventify/eventify.dart';
+import 'package:events_emitter/events_emitter.dart';
 
 abstract interface class IRRegisterable {
   Map<IncrementalRegistry, int> get ids;
@@ -18,7 +18,7 @@ class IncrementalRegistry<V extends IRRegisterable> {
     int id = _totalRegistered++;
     item.ids[this] = id;
     _registry[id] = item;
-    emitter.emit('register', this, item);
+    emitter.emit('register', item);
   }
 
   V? get(int id) {
@@ -40,14 +40,14 @@ class IncrementalRegistry<V extends IRRegisterable> {
     int id = item.ids[this]!;
     _registry.remove(id);
     item.ids.remove(this);
-    emitter.emit('unregister', this, item);
+    emitter.emit('unregister', item);
   }
 
   void unregisterById(int id) {
     V? item = _registry.remove(id);
     if (item == null) return;
     item.ids.remove(this);
-    emitter.emit('unregister', this, item);
+    emitter.emit('unregister', item);
   }
 
   List<V> getAll() {

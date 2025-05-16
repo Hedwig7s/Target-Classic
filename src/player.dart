@@ -1,4 +1,4 @@
-import 'package:eventify/eventify.dart';
+import 'package:events_emitter/events_emitter.dart';
 
 import 'block.dart';
 import 'datatypes.dart';
@@ -11,6 +11,11 @@ import 'registries/namedregistry.dart';
 import 'registries/serviceregistry.dart';
 import 'world.dart';
 
+class PlayerListenedEvents {
+  EventListener? entityAdded;
+  EventListener? setBlock;
+}
+
 class Player implements Nameable<String> {
   final String name;
   String fancyName;
@@ -20,6 +25,7 @@ class Player implements Nameable<String> {
   String get id => name;
   World? world;
   final EventEmitter emitter = EventEmitter();
+  PlayerListenedEvents listenedEvents = PlayerListenedEvents();
 
   Player({
     required this.name,
@@ -62,6 +68,9 @@ class Player implements Nameable<String> {
   }
 
   void loadWorld(World world) async {
+    listenedEvents.setBlock?.cancel();
+    listenedEvents.entityAdded?.cancel();
+
     if (connection?.protocol != null) {
       var packets = await connection!.protocol!.packets;
       var levelInitPacket =
@@ -86,8 +95,9 @@ class Player implements Nameable<String> {
           sizeZ: world.size.z,
         ),
       );
-      EventCallback onSetBlock = (Event event, context) {
-        var blockData = event.eventData as ({Vector3I position, BlockID block});
+      EventCallback<({Vector3I position, BlockID block})> onSetBlock = (
+        ({Vector3I position, BlockID block}) blockData,
+      ) {
         SendablePacket<SetBlockServerPacketData>? setBlockPacket =
             connection!.protocol?.packets[PacketIds.setBlockServer]
                 as SendablePacket<SetBlockServerPacketData>?;
@@ -107,9 +117,9 @@ class Player implements Nameable<String> {
           ),
         );
       };
-      world.emitter.on('setBlock', null, onSetBlock);
+      listenedEvents.setBlock = world.emitter.on<({Vector3I position, BlockID block})>('setBlock', onSetBlock);
     }
     this.world = world;
-    emitter.emit("worldLoaded", this, world);
+    emitter.emit("worldLoaded", world);
   }
 }

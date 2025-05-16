@@ -10,6 +10,6 @@ class NamedRegistryWithDefault<K, V extends Nameable<K>>
       register(item); // Duplicate will be detected here
     }
     _defaultItem = item;
-    emitter.emit('setDefaultItem', this, item);
+    emitter.emit('setDefaultItem', item);
   }
 }

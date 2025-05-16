@@ -1,4 +1,4 @@
-import 'package:eventify/eventify.dart';
+import 'package:events_emitter/events_emitter.dart';
 
 import 'datatypes.dart';
 import 'registries/incrementalregistry.dart';
@@ -27,6 +27,6 @@ class Entity implements IRRegisterable {
 
   move(EntityPosition newPosition) {
     _position = newPosition;
-    emitter.emit('move', this, newPosition);
+    emitter.emit('move', newPosition);
   }
 }

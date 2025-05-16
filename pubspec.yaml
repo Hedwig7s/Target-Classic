@@ -3,6 +3,6 @@ environment:
   sdk: '^3.7.0'
 dependencies:
   buffer: ^1.2.3
-  eventify: ^1.0.1
-  meta: ^1.16.0
+  events_emitter: ^0.6.0
+  meta: ^1.17.0
   path: ^1.9.1
