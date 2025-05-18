@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'packet.dart';
+import 'protocols/7/packetdata.dart';
 
 // Index lines up with the packet id
 enum PacketIds {
@@ -30,5 +31,24 @@ abstract class Protocol {
       return false;
     }
     return data[1] == version;
+  }
+
+  T assertPacket<T extends Packet>(PacketIds id) {
+    Packet? packet = packets[id];
+    if (packet == null)
+      throw Exception("Packet $id doesn't exist for protocol $version");
+    if (packet is! T)
+      throw Exception(
+        "Packet $id is not of the expected type. Expected $T, got ${packet.runtimeType}",
+      );
+    return packet;
+  }
+
+  T? getPacket<T extends Packet>(PacketIds id) {
+    try {
+      return assertPacket<T>(id);
+    } catch (e) {
+      return null;
+    }
   }
 }

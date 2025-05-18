@@ -1,10 +1,11 @@
 import 'package:events_emitter/events_emitter.dart';
 
 import 'datatypes.dart';
+import 'networking/connection.dart';
 import 'registries/incrementalregistry.dart';
 import 'world.dart';
 
-class Entity implements IRRegisterable {
+abstract class Entity implements IRRegisterable {
   EntityPosition _position = EntityPosition(0, 0, 0, 0, 0);
   EntityPosition get position => _position;
   World? world;
@@ -22,6 +23,7 @@ class Entity implements IRRegisterable {
     }
     this.world = world;
     world.addEntity(this);
+    this._position = world.spawnPoint;
     emitter.emit('spawn', this);
   }
 
@@ -29,4 +31,6 @@ class Entity implements IRRegisterable {
     _position = newPosition;
     emitter.emit('move', newPosition);
   }
+
+  spawnFor(Connection connection);
 }

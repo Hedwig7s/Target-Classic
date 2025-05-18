@@ -7,6 +7,7 @@ import 'networking/connection.dart';
 import 'networking/packet.dart';
 import 'networking/protocol.dart';
 import 'networking/protocols/7/packetdata.dart';
+import 'playerentity.dart';
 import 'registries/namedregistry.dart';
 import 'registries/serviceregistry.dart';
 import 'world.dart';
@@ -21,7 +22,7 @@ class Player implements Nameable<String> {
   String fancyName;
   Connection? connection;
   ServiceRegistry? serviceRegistry;
-  Entity? entity;
+  PlayerEntity? entity;
   String get id => name;
   World? world;
   final EventEmitter emitter = EventEmitter();
@@ -32,28 +33,21 @@ class Player implements Nameable<String> {
     required this.fancyName,
     this.connection,
     this.serviceRegistry,
-    bool defaultEntity = true,
-    Entity? entity,
-  }) : assert(
-         (entity == null) || (defaultEntity == false),
-         'Cannot set entity and defaultEntity at the same time',
-       ) {
-    if (defaultEntity) {
-      entity = Entity(name: name, fancyName: fancyName);
-    }
-    this.entity = entity;
+  }) {
+    this.entity = PlayerEntity(name: name, fancyName: fancyName, player: this);
   }
 
   void identify() {
     if (connection == null) {
       return;
     }
-    SendablePacket<IdentificationPacketData>? identificationPacket =
-        connection!.protocol?.packets[PacketIds.identification]
-            as SendablePacket<IdentificationPacketData>?;
-    if (identificationPacket == null) {
-      throw Exception('Packet not found for ID: ${PacketIds.identification}');
-    }
+    if (connection!.protocol == null)
+      throw Exception("Attempt to identify without protocol");
+    var identificationPacket = connection!.protocol!
+        .assertPacket<SendablePacket<IdentificationPacketData>>(
+          PacketIds.identification,
+        );
+
     // TODO: Use proper values here
     identificationPacket.send(
       connection!,
@@ -67,7 +61,28 @@ class Player implements Nameable<String> {
     emitter.emit("identified", this);
   }
 
-  void loadWorld(World world) async {
+  void spawn() {
+    if (this.world == null) throw Exception("No world to spawn in!");
+    this.entity?.spawn(this.world!, calledBack: true);
+    if (this.connection?.protocol != null && this.entity != null) {
+      var packet = this.connection!.protocol!
+          .assertPacket<SendablePacket<SpawnPlayerPacketData>>(
+            PacketIds.spawnPlayer,
+          );
+      print("Spawning player ${entity!.name} with id ${entity!.worldId}");
+      packet.send(
+        connection!,
+        SpawnPlayerPacketData(
+          playerId: -1,
+          name: name,
+          position: entity!.position,
+        ),
+      );
+      // TODO: Spawn other players
+    }
+  }
+
+  Future<void> loadWorld(World world) async {
     listenedEvents.setBlock?.cancel();
     listenedEvents.entityAdded?.cancel();
 
@@ -98,26 +113,28 @@ class Player implements Nameable<String> {
       EventCallback<({Vector3I position, BlockID block})> onSetBlock = (
         ({Vector3I position, BlockID block}) blockData,
       ) {
-        SendablePacket<SetBlockServerPacketData>? setBlockPacket =
-            connection!.protocol?.packets[PacketIds.setBlockServer]
-                as SendablePacket<SetBlockServerPacketData>?;
+        var setBlockPacket = connection!.protocol
+            ?.getPacket<SendablePacket<SetBlockServerPacketData>>(
+              PacketIds.setBlockServer,
+            );
         if (setBlockPacket == null) {
-          print("Packet not found for ID: ${PacketIds.setBlockServer}");
+          print("Packet ${PacketIds.setBlockServer} not found");
           return;
         }
         Vector3I position = blockData.position;
         BlockID block = blockData.block;
         setBlockPacket.send(
           connection!,
-          SetBlockServerPacketData(
-            x: position.x,
-            y: position.y,
-            z: position.z,
-            blockId: block.index,
-          ),
+          SetBlockServerPacketData(position: position, blockId: block.index),
         );
       };
-      listenedEvents.setBlock = world.emitter.on<({Vector3I position, BlockID block})>('setBlock', onSetBlock);
+      listenedEvents.setBlock = world.emitter
+          .on<({Vector3I position, BlockID block})>('setBlock', onSetBlock);
+      EventCallback<Entity> onEntityAdded = (Entity entity) {};
+      listenedEvents.entityAdded = world.emitter.on<Entity>(
+        "entityAdded",
+        onEntityAdded,
+      );
     }
     this.world = world;
     emitter.emit("worldLoaded", world);

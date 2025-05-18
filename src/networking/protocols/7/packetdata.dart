@@ -1,3 +1,5 @@
+import '../../../datatypes.dart';
+
 abstract class PacketData {
   final int id;
 
@@ -106,17 +108,13 @@ class LevelFinalizePacketData implements PacketData {
 class SetBlockClientPacketData implements PacketData {
   @override
   final int id;
-  final int x;
-  final int y;
-  final int z;
+  final Vector3<int> position;
   final int mode;
   final int blockId;
 
   SetBlockClientPacketData({
     this.id = 0x05,
-    required this.x,
-    required this.y,
-    required this.z,
+    required this.position,
     required this.mode,
     required this.blockId,
   });
@@ -124,9 +122,7 @@ class SetBlockClientPacketData implements PacketData {
   @override
   String toString() {
     return 'SetBlockClientPacketData{id: 0x${id.toRadixString(16).padLeft(2, '0')}, '
-        'x: $x, '
-        'y: $y, '
-        'z: $z, '
+        'position: $position, '
         'mode: $mode, '
         'blockId: $blockId}';
   }
@@ -135,25 +131,19 @@ class SetBlockClientPacketData implements PacketData {
 class SetBlockServerPacketData implements PacketData {
   @override
   final int id;
-  final int x;
-  final int y;
-  final int z;
+  final Vector3<int> position;
   final int blockId;
 
   SetBlockServerPacketData({
     this.id = 0x06,
-    required this.x,
-    required this.y,
-    required this.z,
+    required this.position,
     required this.blockId,
   });
 
   @override
   String toString() {
     return 'SetBlockServerPacketData{id: 0x${id.toRadixString(16).padLeft(2, '0')}, '
-        'x: $x, '
-        'y: $y, '
-        'z: $z, '
+        'position: $position, '
         'blockId: $blockId}';
   }
 }
@@ -163,21 +153,13 @@ class SpawnPlayerPacketData implements PacketData {
   final int id;
   final int playerId;
   final String name;
-  final double x;
-  final double y;
-  final double z;
-  final int yaw;
-  final int pitch;
+  final EntityPosition position;
 
   SpawnPlayerPacketData({
     this.id = 0x07,
     required this.playerId,
     required this.name,
-    required this.x,
-    required this.y,
-    required this.z,
-    required this.yaw,
-    required this.pitch,
+    required this.position,
   });
 
   @override
@@ -185,11 +167,7 @@ class SpawnPlayerPacketData implements PacketData {
     return 'SpawnPlayerPacketData{id: 0x${id.toRadixString(16).padLeft(2, '0')}, '
         'playerId: $playerId, '
         'name: "$name", '
-        'x: $x, '
-        'y: $y, '
-        'z: $z, '
-        'yaw: $yaw, '
-        'pitch: $pitch}';
+        'position: "$position"}';
   }
 }
 
@@ -197,31 +175,19 @@ class SetPositionAndOrientationPacketData implements PacketData {
   @override
   final int id;
   final int playerId;
-  final double x;
-  final double y;
-  final double z;
-  final int yaw;
-  final int pitch;
+  final EntityPosition position;
 
   SetPositionAndOrientationPacketData({
     this.id = 0x08,
     required this.playerId,
-    required this.x,
-    required this.y,
-    required this.z,
-    required this.yaw,
-    required this.pitch,
+    required this.position,
   });
 
   @override
   String toString() {
     return 'SetPositionAndOrientationPacketData{id: 0x${id.toRadixString(16).padLeft(2, '0')}, '
         'playerId: $playerId, '
-        'x: $x, '
-        'y: $y, '
-        'z: $z, '
-        'yaw: $yaw, '
-        'pitch: $pitch}';
+        'position: $position}';
   }
 }
 
@@ -229,31 +195,19 @@ class PositionAndOrientationUpdate implements PacketData {
   @override
   final int id;
   final int playerId;
-  final double x;
-  final double y;
-  final double z;
-  final int yaw;
-  final int pitch;
+  final EntityPosition position;
 
   PositionAndOrientationUpdate({
     this.id = 0x09,
     required this.playerId,
-    required this.x,
-    required this.y,
-    required this.z,
-    required this.yaw,
-    required this.pitch,
+    required this.position,
   });
 
   @override
   String toString() {
     return 'PositionAndOrientationUpdate{id: 0x${id.toRadixString(16).padLeft(2, '0')}, '
         'playerId: $playerId, '
-        'x: $x, '
-        'y: $y, '
-        'z: $z, '
-        'yaw: $yaw, '
-        'pitch: $pitch}';
+        'position: $position}';
   }
 }
 
@@ -261,25 +215,19 @@ class PositionUpdatePacketData implements PacketData {
   @override
   final int id;
   final int playerId;
-  final double x;
-  final double y;
-  final double z;
+  final Vector3<double> position;
 
   PositionUpdatePacketData({
     this.id = 0x0A,
     required this.playerId,
-    required this.x,
-    required this.y,
-    required this.z,
+    required this.position,
   });
 
   @override
   String toString() {
     return 'PositionUpdatePacketData{id: 0x${id.toRadixString(16).padLeft(2, '0')}, '
         'playerId: $playerId, '
-        'x: $x, '
-        'y: $y, '
-        'z: $z}';
+        'position: $position}';
   }
 }
 
@@ -287,22 +235,19 @@ class OrientationUpdatePacketData implements PacketData {
   @override
   final int id;
   final int playerId;
-  final int yaw;
-  final int pitch;
+  final EntityPosition position;
 
   OrientationUpdatePacketData({
     this.id = 0x0B,
     required this.playerId,
-    required this.yaw,
-    required this.pitch,
+    required this.position,
   });
 
   @override
   String toString() {
     return 'OrientationUpdatePacketData{id: 0x${id.toRadixString(16).padLeft(2, '0')}, '
         'playerId: $playerId, '
-        'yaw: $yaw, '
-        'pitch: $pitch}';
+        'position: $position}';
   }
 }
 
@@ -326,7 +271,11 @@ class MessagePacketData implements PacketData {
   final int playerId;
   final String message;
 
-  MessagePacketData({this.id = 0x0D, required this.playerId, required this.message});
+  MessagePacketData({
+    this.id = 0x0D,
+    required this.playerId,
+    required this.message,
+  });
 
   @override
   String toString() {

@@ -78,7 +78,8 @@ class IdentificationPacket7 extends Packet
             ?.tryGetService<WorldRegistry>("worldregistry")
             ?.defaultItem;
     if (world != null) {
-      player.loadWorld(world);
+      await player.loadWorld(world);
+      player.spawn();
     } else {
       print('No default world found for player ${player.name}');
     }
@@ -213,9 +214,7 @@ class SetBlockClientPacket7 extends Packet
   SetBlockClientPacketData decode(List<int> data) {
     var decodedData = parser.decode(data);
     return SetBlockClientPacketData(
-      x: decodedData[1],
-      y: decodedData[2],
-      z: decodedData[3],
+      position: Vector3I(decodedData[1], decodedData[2], decodedData[3]),
       mode: decodedData[4],
       blockId: decodedData[5],
     );
@@ -224,9 +223,9 @@ class SetBlockClientPacket7 extends Packet
   List<int> encode(SetBlockClientPacketData data) {
     return parser.encode([
       data.id,
-      data.x,
-      data.y,
-      data.z,
+      data.position.x,
+      data.position.y,
+      data.position.z,
       data.blockId,
       data.mode,
     ]);
@@ -245,7 +244,11 @@ class SetBlockClientPacket7 extends Packet
       return;
     }
     World world = connection.player!.world!;
-    Vector3I blockPos = Vector3I(decodedData.x, decodedData.y, decodedData.z);
+    Vector3I blockPos = Vector3I(
+      decodedData.position.x,
+      decodedData.position.y,
+      decodedData.position.z,
+    );
     if (decodedData.mode == 0) {
       world.setBlock(blockPos, BlockID.air);
     } else {
@@ -272,16 +275,20 @@ class SetBlockServerPacket7 extends Packet
   SetBlockServerPacketData decode(List<int> data) {
     var decodedData = parser.decode(data);
     return SetBlockServerPacketData(
-      x: decodedData[1],
-      y: decodedData[2],
-      z: decodedData[3],
+      position: Vector3I(decodedData[1], decodedData[2], decodedData[3]),
       blockId: decodedData[4],
     );
   }
 
   @override
   List<int> encode(SetBlockServerPacketData data) {
-    return parser.encode([data.id, data.x, data.y, data.z, data.blockId]);
+    return parser.encode([
+      data.id,
+      data.position.x,
+      data.position.y,
+      data.position.z,
+      data.blockId,
+    ]);
   }
 }
 
@@ -306,24 +313,27 @@ class SpawnPlayerPacket7 extends Packet
     return SpawnPlayerPacketData(
       playerId: decodedData[1],
       name: decodedData[2],
-      x: decodedData[3],
-      y: decodedData[4],
-      z: decodedData[5],
-      yaw: decodedData[6],
-      pitch: decodedData[7],
+      position: EntityPosition(
+        decodedData[3],
+        decodedData[4],
+        decodedData[5],
+        decodedData[6],
+        decodedData[7],
+      ),
     );
   }
+
   @override
   List<int> encode(SpawnPlayerPacketData data) {
     return parser.encode([
       data.id,
       data.playerId,
       data.name,
-      data.x,
-      data.y,
-      data.z,
-      data.yaw,
-      data.pitch,
+      data.position.x,
+      data.position.y,
+      data.position.z,
+      data.position.yaw,
+      data.position.pitch,
     ]);
   }
 }
