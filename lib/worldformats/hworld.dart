@@ -313,7 +313,7 @@ class HWorldFormat extends WorldFormat {
       blockDataSize: compressedBlocks.length,
     );
 
-    List<int> result = header.encode();
+    List<int> result = List.from(header.encode());
     result.addAll(compressedBlocks);
 
     return result;

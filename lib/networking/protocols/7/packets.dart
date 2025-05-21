@@ -1,10 +1,11 @@
+import '../../../registries/worldregistry.dart';
+
 import '../../../block.dart';
 import '../../../datatypes.dart';
 import '../../connection.dart';
 import '../../packet.dart';
 import '../../../player.dart';
 import '../../../registries/namedregistry.dart';
-import '../../../registries/registryextras.dart';
 import '../../../registries/instanceregistry.dart';
 import '../../../world.dart';
 import '../../packetdata.dart';
@@ -76,7 +77,7 @@ class IdentificationPacket7 extends Packet
     World? world =
         instanceRegistry
             ?.tryGetInstance<WorldRegistry>("worldregistry")
-            ?.defaultItem;
+            ?.defaultWorld;
     if (world != null) {
       await player.loadWorld(world);
       player.spawn();

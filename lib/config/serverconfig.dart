@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:json5/json5.dart';
 import 'package:path/path.dart' as p;
-import 'package:target_classic/constants.dart';
+import '../constants.dart';
 
 part 'serverconfig.freezed.dart';
 part 'serverconfig.g.dart';

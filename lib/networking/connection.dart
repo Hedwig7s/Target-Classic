@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:events_emitter/emitters/event_emitter.dart';
-import 'package:target_classic/utility/clearemitter.dart';
+import '../utility/clearemitter.dart';
 
 import '../constants.dart';
 import '../player.dart';

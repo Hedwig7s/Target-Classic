@@ -1,5 +1,5 @@
 import 'package:events_emitter/events_emitter.dart';
-import 'package:target_classic/config/serverconfig.dart';
+import 'config/serverconfig.dart';
 
 import 'block.dart';
 import 'datatypes.dart';

@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:target_classic/config/serverconfig.dart';
-import 'package:target_classic/constants.dart';
+import '../config/serverconfig.dart';
+import '../constants.dart';
 import 'package:path/path.dart' as p;
 
 import '../datatypes.dart';
@@ -10,10 +10,9 @@ import '../player.dart';
 import '../world.dart';
 import '../worldformats/hworld.dart';
 import 'namedregistry.dart';
-import 'namedregistrywithdefault.dart';
+import 'worldregistry.dart';
 import 'instanceregistry.dart';
 
-typedef WorldRegistry = NamedRegistryWithDefault<String, World>;
 typedef PlayerRegistry = NamedRegistry<String, Player>;
 
 Future<InstanceRegistry> getServerInstanceRegistry() async {
@@ -50,7 +49,7 @@ Future<InstanceRegistry> getServerInstanceRegistry() async {
     }
     defaultWorld = World.superflat("world", Vector3I(128, 128, 128));
   }
-  worldRegistry.setDefaultItem(defaultWorld);
+  worldRegistry.setDefaultWorld(defaultWorld);
   instanceRegistry.registerInstance("worldregistry", worldRegistry);
 
   final Server server = new Server(
