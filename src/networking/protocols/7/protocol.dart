@@ -15,5 +15,9 @@ class Protocol7 extends Protocol {
     PacketIds.setBlockServer: SetBlockServerPacket7(),
     PacketIds.spawnPlayer: SpawnPlayerPacket7(),
     PacketIds.setPositionAndOrientation: SetPositionAndOrientationPacket7(),
+    PacketIds.positionAndOrientationUpdate:
+        PositionAndOrientationUpdatePacket7(),
+    PacketIds.positionUpdate: PositionUpdatePacket7(),
+    PacketIds.orientationUpdate: OrientationUpdatePacket7(),
   };
 }

@@ -389,3 +389,115 @@ class SetPositionAndOrientationPacket7 extends Packet
     connection.player!.entity?.move(decodedData.position, byPlayer: true);
   }
 }
+
+class PositionAndOrientationUpdatePacket7 extends Packet
+    with SendablePacket<PositionAndOrientationUpdatePacketData> {
+  static final DataParser parser =
+      DataParserBuilder()
+          .bigEndian()
+          .uint8()
+          .sint8()
+          .fixedPoint(size: 1, fractionalBits: 5, signed: true)
+          .fixedPoint(size: 1, fractionalBits: 5, signed: true)
+          .fixedPoint(size: 1, fractionalBits: 5, signed: true)
+          .uint8()
+          .uint8()
+          .build();
+  int id = 0x09;
+  int length = 10;
+  PositionAndOrientationUpdatePacketData decode(List<int> data) {
+    var decodedData = parser.decode(data);
+    return PositionAndOrientationUpdatePacketData(
+      playerId: decodedData[1],
+      position: EntityPosition(
+        decodedData[2],
+        decodedData[3],
+        decodedData[4],
+        decodedData[5],
+        decodedData[6],
+      ),
+    );
+  }
+
+  @override
+  List<int> encode(PositionAndOrientationUpdatePacketData data) {
+    return parser.encode([
+      data.id,
+      data.playerId,
+      data.position.x,
+      data.position.y,
+      data.position.z,
+      data.position.yaw,
+      data.position.pitch,
+    ]);
+  }
+}
+
+class PositionUpdatePacket7 extends Packet
+    with SendablePacket<PositionUpdatePacketData> {
+  static final DataParser parser =
+      DataParserBuilder()
+          .bigEndian()
+          .uint8()
+          .sint8()
+          .fixedPoint(size: 1, fractionalBits: 5, signed: true)
+          .fixedPoint(size: 1, fractionalBits: 5, signed: true)
+          .fixedPoint(size: 1, fractionalBits: 5, signed: true)
+          .build();
+  int id = 0x09;
+  int length = 10;
+  PositionUpdatePacketData decode(List<int> data) {
+    var decodedData = parser.decode(data);
+    return PositionUpdatePacketData(
+      playerId: decodedData[1],
+      position: Vector3F(decodedData[2], decodedData[3], decodedData[4]),
+    );
+  }
+
+  @override
+  List<int> encode(PositionUpdatePacketData data) {
+    return parser.encode([
+      data.id,
+      data.playerId,
+      data.position.x,
+      data.position.y,
+      data.position.z,
+    ]);
+  }
+}
+
+class OrientationUpdatePacket7 extends Packet
+    with SendablePacket<OrientationUpdatePacketData> {
+  static final DataParser parser =
+      DataParserBuilder()
+          .bigEndian()
+          .uint8()
+          .sint8()
+          .uint8()
+          .uint8()
+          .build();
+  int id = 0x09;
+  int length = 10;
+  OrientationUpdatePacketData decode(List<int> data) {
+    var decodedData = parser.decode(data);
+    return OrientationUpdatePacketData(
+      playerId: decodedData[1],
+      position: EntityPosition(
+        0,
+        0,
+        0,
+        decodedData[2],
+        decodedData[3]
+      ),
+    );
+  }
+  @override
+  List<int> encode(OrientationUpdatePacketData data) {
+    return parser.encode([
+      data.id,
+      data.playerId,
+      data.position.yaw,
+      data.position.pitch,
+    ]);
+  }
+}
