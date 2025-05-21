@@ -193,6 +193,7 @@ class World implements Nameable<String> {
     entities[id] = entity;
     entity.world = this;
     entity.worldId = id;
+
     emitter.emit('entityAdded', entity);
   }
 

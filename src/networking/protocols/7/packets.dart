@@ -337,3 +337,55 @@ class SpawnPlayerPacket7 extends Packet
     ]);
   }
 }
+
+class SetPositionAndOrientationPacket7 extends Packet
+    with
+        SendablePacket<SetPositionAndOrientationPacketData>,
+        ReceivablePacket<SetPositionAndOrientationPacketData> {
+  static final DataParser parser =
+      DataParserBuilder()
+          .bigEndian()
+          .uint8()
+          .sint8()
+          .fixedPoint(size: 2, fractionalBits: 5, signed: true)
+          .fixedPoint(size: 2, fractionalBits: 5, signed: true)
+          .fixedPoint(size: 2, fractionalBits: 5, signed: true)
+          .uint8()
+          .uint8()
+          .build();
+  int id = 0x08;
+  int length = 10;
+  SetPositionAndOrientationPacketData decode(List<int> data) {
+    var decodedData = parser.decode(data);
+    return SetPositionAndOrientationPacketData(
+      playerId: decodedData[1],
+      position: EntityPosition(
+        decodedData[2],
+        decodedData[3],
+        decodedData[4],
+        decodedData[5],
+        decodedData[6],
+      ),
+    );
+  }
+
+  @override
+  List<int> encode(SetPositionAndOrientationPacketData data) {
+    return parser.encode([
+      data.id,
+      data.playerId,
+      data.position.x,
+      data.position.y,
+      data.position.z,
+      data.position.yaw,
+      data.position.pitch,
+    ]);
+  }
+
+  @override
+  Future<void> receive(Connection connection, List<int> data) async {
+    var decodedData = decode(data);
+    if (connection.player == null) return;
+    connection.player!.entity?.move(decodedData.position, byPlayer: true);
+  }
+}

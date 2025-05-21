@@ -1,32 +1,41 @@
 import 'package:events_emitter/events_emitter.dart';
+import 'package:meta/meta.dart';
 
 abstract interface class IRRegisterable {
   Map<IncrementalRegistry, int> get ids;
+  EventEmitter get emitter;
 }
 
 class IncrementalRegistry<V extends IRRegisterable> {
-  final Map<int, V> _registry = {};
+  @protected
+  final Map<int, V> registry = {};
   final EventEmitter emitter = EventEmitter();
-  int _totalRegistered = 0;
+  @protected
+  final Map<V, EventListener> listeners = {};
+  @protected
+  int totalRegisteredP = 0;
 
-  int get totalRegistered => _totalRegistered;
+  int get totalRegistered => totalRegisteredP;
 
   void register(V item) {
     if (item.ids.containsKey(this)) {
       throw Exception("Item already registered in this registry");
     }
-    int id = _totalRegistered++;
+    int id = totalRegisteredP++;
     item.ids[this] = id;
-    _registry[id] = item;
+    registry[id] = item;
+    listeners[item] = item.emitter.on('destroyed', (args) {
+      unregister(item);
+    });
     emitter.emit('register', item);
   }
 
   V? get(int id) {
-    return _registry[id];
+    return registry[id];
   }
 
   bool contains(int id) {
-    return _registry.containsKey(id);
+    return registry.containsKey(id);
   }
 
   bool containsItem(V item) {
@@ -38,19 +47,20 @@ class IncrementalRegistry<V extends IRRegisterable> {
       throw Exception("Item not registered in this registry");
     }
     int id = item.ids[this]!;
-    _registry.remove(id);
+    registry.remove(id);
     item.ids.remove(this);
+    listeners[item]?.cancel();
+    listeners.remove(item);
     emitter.emit('unregister', item);
   }
 
   void unregisterById(int id) {
-    V? item = _registry.remove(id);
+    V? item = registry.remove(id);
     if (item == null) return;
-    item.ids.remove(this);
-    emitter.emit('unregister', item);
+    unregister(item);
   }
 
   List<V> getAll() {
-    return _registry.values.toList();
+    return registry.values.toList();
   }
 }

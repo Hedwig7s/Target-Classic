@@ -10,11 +10,23 @@ import 'networking/protocols/7/packetdata.dart';
 import 'playerentity.dart';
 import 'registries/namedregistry.dart';
 import 'registries/serviceregistry.dart';
+import 'utility/clearemitter.dart';
 import 'world.dart';
 
-class PlayerListenedEvents {
+class PlayerListenedWorldEvents {
   EventListener? entityAdded;
+  EventListener? entityRemoved;
   EventListener? setBlock;
+  Map<Entity, EventListener> entityMovedListeners = {};
+  clear() {
+    entityAdded?.cancel();
+    entityRemoved?.cancel();
+    setBlock?.cancel();
+    for (var listener in entityMovedListeners.values) {
+      listener.cancel();
+    }
+    entityMovedListeners.clear();
+  }
 }
 
 class Player implements Nameable<String> {
@@ -23,10 +35,10 @@ class Player implements Nameable<String> {
   Connection? connection;
   ServiceRegistry? serviceRegistry;
   PlayerEntity? entity;
-  String get id => name;
   World? world;
+  bool destroyed = false;
   final EventEmitter emitter = EventEmitter();
-  PlayerListenedEvents listenedEvents = PlayerListenedEvents();
+  PlayerListenedWorldEvents worldEvents = PlayerListenedWorldEvents();
 
   Player({
     required this.name,
@@ -35,6 +47,9 @@ class Player implements Nameable<String> {
     this.serviceRegistry,
   }) {
     this.entity = PlayerEntity(name: name, fancyName: fancyName, player: this);
+    this.connection?.emitter.on("closed", (data) {
+      this.destroy();
+    });
   }
 
   void identify() {
@@ -58,7 +73,7 @@ class Player implements Nameable<String> {
         userType: 0,
       ),
     );
-    emitter.emit("identified", this);
+    emitter.emit("identified");
   }
 
   void spawn() {
@@ -69,7 +84,6 @@ class Player implements Nameable<String> {
           .assertPacket<SendablePacket<SpawnPlayerPacketData>>(
             PacketIds.spawnPlayer,
           );
-      print("Spawning player ${entity!.name} with id ${entity!.worldId}");
       packet.send(
         connection!,
         SpawnPlayerPacketData(
@@ -78,14 +92,12 @@ class Player implements Nameable<String> {
           position: entity!.position,
         ),
       );
-      // TODO: Spawn other players
     }
+    emitter.emit("spawned");
   }
 
   Future<void> loadWorld(World world) async {
-    listenedEvents.setBlock?.cancel();
-    listenedEvents.entityAdded?.cancel();
-
+    worldEvents.clear();
     if (connection?.protocol != null) {
       var packets = await connection!.protocol!.packets;
       var levelInitPacket =
@@ -128,15 +140,63 @@ class Player implements Nameable<String> {
           SetBlockServerPacketData(position: position, blockId: block.index),
         );
       };
-      listenedEvents.setBlock = world.emitter
-          .on<({Vector3I position, BlockID block})>('setBlock', onSetBlock);
-      EventCallback<Entity> onEntityAdded = (Entity entity) {};
-      listenedEvents.entityAdded = world.emitter.on<Entity>(
+      EventCallback<Entity> onEntityAdded = (Entity entity) {
+        if (entity == this.entity) return;
+        entity.spawnFor(connection!);
+        var setPositionPacket = connection!.protocol
+            ?.getPacket<SendablePacket<SetPositionAndOrientationPacketData>>(
+              PacketIds.setPositionAndOrientation,
+            );
+        if (setPositionPacket == null) {
+          print("Packet ${PacketIds.setPositionAndOrientation} not found");
+          return;
+        }
+        entity.emitter.on<EntityPosition>("moved", (EntityPosition position) {
+          setPositionPacket.send(
+            connection!,
+            SetPositionAndOrientationPacketData(
+              playerId: entity.worldId!,
+              position: position,
+            ),
+          );
+        });
+      };
+      EventCallback<Entity> onEntityRemoved = (Entity entity) {
+        if (entity == this.entity) return;
+        worldEvents.entityMovedListeners[entity]?.cancel();
+        worldEvents.entityMovedListeners.remove(entity);
+        // TODO: Send despawn packet
+      };
+      for (var entity in world.entities.values) {
+        onEntityAdded.call(entity);
+      }
+      worldEvents.entityAdded = world.emitter.on<Entity>(
         "entityAdded",
         onEntityAdded,
       );
+      worldEvents.entityRemoved = world.emitter.on<Entity>(
+        "entityRemoved",
+        onEntityRemoved,
+      );
+      worldEvents.setBlock = world.emitter
+          .on<({Vector3I position, BlockID block})>('setBlock', onSetBlock);
     }
     this.world = world;
     emitter.emit("worldLoaded", world);
+  }
+
+  void destroy() {
+    emitter.emit('destroyed');
+    clearEmitter(emitter);
+    this.worldEvents.setBlock?.cancel();
+    this.worldEvents.entityAdded?.cancel();
+    this.worldEvents.entityRemoved?.cancel();
+    worldEvents.entityMovedListeners.clear();
+
+    for (var listener in worldEvents.entityMovedListeners.values) {
+      listener.cancel();
+    }
+    this.destroyed = true;
+    this.entity?.destroy(byPlayer: true);
   }
 }

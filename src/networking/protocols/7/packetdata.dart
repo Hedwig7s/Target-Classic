@@ -191,13 +191,13 @@ class SetPositionAndOrientationPacketData implements PacketData {
   }
 }
 
-class PositionAndOrientationUpdate implements PacketData {
+class PositionAndOrientationUpdatePacketData implements PacketData {
   @override
   final int id;
   final int playerId;
   final EntityPosition position;
 
-  PositionAndOrientationUpdate({
+  PositionAndOrientationUpdatePacketData({
     this.id = 0x09,
     required this.playerId,
     required this.position,

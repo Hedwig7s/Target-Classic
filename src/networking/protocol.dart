@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'packet.dart';
-import 'protocols/7/packetdata.dart';
 
 // Index lines up with the packet id
 enum PacketIds {

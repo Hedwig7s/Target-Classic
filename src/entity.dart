@@ -3,6 +3,7 @@ import 'package:events_emitter/events_emitter.dart';
 import 'datatypes.dart';
 import 'networking/connection.dart';
 import 'registries/incrementalregistry.dart';
+import 'utility/clearemitter.dart';
 import 'world.dart';
 
 abstract class Entity implements IRRegisterable {
@@ -12,6 +13,7 @@ abstract class Entity implements IRRegisterable {
   final Map<IncrementalRegistry, int> ids = {};
   final String name;
   final String fancyName;
+  bool destroyed = false;
   int? worldId;
   final emitter = EventEmitter();
 
@@ -24,12 +26,20 @@ abstract class Entity implements IRRegisterable {
     this.world = world;
     world.addEntity(this);
     this._position = world.spawnPoint;
-    emitter.emit('spawn', this);
+    emitter.emit('spawned');
   }
 
   move(EntityPosition newPosition) {
     _position = newPosition;
-    emitter.emit('move', newPosition);
+    emitter.emit('moved', newPosition);
+  }
+
+  destroy() {
+    if (this.world != null) {
+      this.world!.removeEntity(this);
+    }
+    emitter.emit('destroyed');
+    clearEmitter(emitter);
   }
 
   spawnFor(Connection connection);

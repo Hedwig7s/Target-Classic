@@ -85,7 +85,7 @@ class Connection {
           this.close();
           return;
         }
-        ReceivablePacket receivablePacket = packet as ReceivablePacket;
+        ReceivablePacket receivablePacket = packet;
         await receivablePacket.receive(this, packetData);
       }
     } catch (e, stackTrace) {
