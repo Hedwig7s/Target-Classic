@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:events_emitter/events_emitter.dart';
 
 import 'connection.dart';
-import '../registries/serviceregistry.dart';
+import '../registries/instanceregistry.dart';
 
 class Server {
   final String host;
@@ -11,10 +11,10 @@ class Server {
   final Map<int, Connection> connections = {};
   int connectionsEver = 0;
   ServerSocket? socket;
-  ServiceRegistry? serviceRegistry;
+  InstanceRegistry? instanceRegistry;
   EventEmitter emitter = EventEmitter();
 
-  Server(this.host, this.port, {this.serviceRegistry}) {
+  Server(this.host, this.port, {this.instanceRegistry}) {
     if (host.isEmpty) {
       throw ArgumentError('Host cannot be empty');
     }
@@ -33,7 +33,7 @@ class Server {
         Connection connection = Connection(
           id,
           socket,
-          serviceRegistry: serviceRegistry,
+          instanceRegistry: instanceRegistry,
         );
         connections[id] = connection;
         emitter.emit("connectionOpened", connection);

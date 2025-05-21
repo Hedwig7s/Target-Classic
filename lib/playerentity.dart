@@ -3,7 +3,7 @@ import 'entity.dart';
 import 'networking/connection.dart';
 import 'networking/packet.dart';
 import 'networking/protocol.dart';
-import 'networking/protocols/7/packetdata.dart';
+import 'networking/packetdata.dart';
 import 'player.dart';
 import 'world.dart';
 

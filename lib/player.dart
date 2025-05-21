@@ -1,4 +1,5 @@
 import 'package:events_emitter/events_emitter.dart';
+import 'package:target_classic/config/serverconfig.dart';
 
 import 'block.dart';
 import 'datatypes.dart';
@@ -6,10 +7,10 @@ import 'entity.dart';
 import 'networking/connection.dart';
 import 'networking/packet.dart';
 import 'networking/protocol.dart';
-import 'networking/protocols/7/packetdata.dart';
+import 'networking/packetdata.dart';
 import 'playerentity.dart';
 import 'registries/namedregistry.dart';
-import 'registries/serviceregistry.dart';
+import 'registries/instanceregistry.dart';
 import 'utility/clearemitter.dart';
 import 'world.dart';
 
@@ -33,7 +34,7 @@ class Player implements Nameable<String> {
   final String name;
   String fancyName;
   Connection? connection;
-  ServiceRegistry? serviceRegistry;
+  InstanceRegistry? instanceRegistry;
   PlayerEntity? entity;
   World? world;
   bool destroyed = false;
@@ -43,8 +44,8 @@ class Player implements Nameable<String> {
   Player({
     required this.name,
     required this.fancyName,
+    this.instanceRegistry,
     this.connection,
-    this.serviceRegistry,
   }) {
     this.entity = PlayerEntity(name: name, fancyName: fancyName, player: this);
     this.connection?.emitter.on("closed", (data) {
@@ -62,14 +63,24 @@ class Player implements Nameable<String> {
         .assertPacket<SendablePacket<IdentificationPacketData>>(
           PacketIds.identification,
         );
+    String serverName = "Name not set", motd = "Motd not set";
+    ServerConfig? config = instanceRegistry?.tryGetInstance<ServerConfig>(
+      "serverconfig",
+    );
+    if (config != null) {
+      serverName = config.serverName;
+      motd = config.motd;
+    } else
+      print(
+        "Warning: No server config found for player $name. Name and motd not set",
+      );
 
-    // TODO: Use proper values here
     identificationPacket.send(
       connection!,
       IdentificationPacketData(
         protocolVersion: connection!.protocol!.version,
-        name: "Target-Classic",
-        keyOrMotd: "Gotta unhardcode this",
+        name: serverName,
+        keyOrMotd: motd,
         userType: 0,
       ),
     );
@@ -186,6 +197,7 @@ class Player implements Nameable<String> {
   }
 
   void destroy() {
+    print("Destroying player $name");
     emitter.emit('destroyed');
     clearEmitter(emitter);
     this.worldEvents.setBlock?.cancel();

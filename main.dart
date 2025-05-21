@@ -1,10 +1,10 @@
-import 'src/networking/server.dart';
-import 'src/registries/registryextras.dart';
-import 'src/registries/serviceregistry.dart';
+import 'lib/networking/server.dart';
+import 'lib/registries/registryextras.dart';
+import 'lib/registries/instanceregistry.dart';
 
 void main() async {
-  ServiceRegistry serviceRegistry = await getServerServiceRegistry();
-  Server server = serviceRegistry.getService<Server>("server");
+  InstanceRegistry instanceRegistry = await getServerInstanceRegistry();
+  Server server = instanceRegistry.getInstance<Server>("server");
   server.start();
   print("Server started on ${server.host}:${server.port}");
 }

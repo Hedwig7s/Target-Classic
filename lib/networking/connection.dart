@@ -1,12 +1,13 @@
 import 'dart:io';
 
 import 'package:events_emitter/emitters/event_emitter.dart';
+import 'package:target_classic/utility/clearemitter.dart';
 
 import '../constants.dart';
 import '../player.dart';
 import 'packet.dart';
 import 'protocol.dart';
-import '../registries/serviceregistry.dart';
+import '../registries/instanceregistry.dart';
 
 class Connection {
   final int id;
@@ -16,11 +17,11 @@ class Connection {
   bool socketClosed = false;
   bool processingIncoming = false;
   Protocol? protocol;
-  ServiceRegistry? serviceRegistry;
+  InstanceRegistry? instanceRegistry;
   Player? player;
   EventEmitter emitter = EventEmitter();
 
-  Connection(this.id, this.socket, {this.serviceRegistry}) {
+  Connection(this.id, this.socket, {this.instanceRegistry}) {
     socket.listen(
       (data) {
         buffer.addAll(data);
@@ -108,11 +109,16 @@ class Connection {
   }
 
   close() {
-    if (closed) return;
-    closed = true;
-    if (socketClosed) return;
-    print('Closing connection $id');
-    socket.destroy();
-    emitter.emit("closed");
+    try {
+      if (closed) return;
+      closed = true;
+      emitter.emit("closed");
+      clearEmitter(emitter);
+      if (socketClosed) return;
+      print('Closing connection $id');
+      socket.destroy();
+    } catch (e) {
+      print('Error closing connection: $e');
+    }
   }
 }

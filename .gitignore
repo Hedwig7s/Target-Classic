@@ -3,3 +3,6 @@
 /temp
 /worlds
 /main
+/config
+*.g.dart
+*.freezed.dart

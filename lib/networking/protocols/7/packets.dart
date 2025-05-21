@@ -5,9 +5,9 @@ import '../../packet.dart';
 import '../../../player.dart';
 import '../../../registries/namedregistry.dart';
 import '../../../registries/registryextras.dart';
-import '../../../registries/serviceregistry.dart';
+import '../../../registries/instanceregistry.dart';
 import '../../../world.dart';
-import 'packetdata.dart';
+import '../../packetdata.dart';
 import 'dart:convert';
 import '../../../dataparser/builder.dart';
 import '../../../dataparser/parser.dart';
@@ -59,12 +59,12 @@ class IdentificationPacket7 extends Packet
       name: decodedData.name,
       fancyName: decodedData.name,
       connection: connection,
-      serviceRegistry: connection.serviceRegistry,
+      instanceRegistry: connection.instanceRegistry,
     );
     connection.player = player;
-    ServiceRegistry? serviceRegistry = connection.serviceRegistry;
-    serviceRegistry
-        ?.tryGetService<NamedRegistry>("playerregistry")
+    InstanceRegistry? instanceRegistry = connection.instanceRegistry;
+    instanceRegistry
+        ?.tryGetInstance<NamedRegistry>("playerregistry")
         ?.register(player);
     try {
       player.identify();
@@ -74,8 +74,8 @@ class IdentificationPacket7 extends Packet
       return;
     }
     World? world =
-        serviceRegistry
-            ?.tryGetService<WorldRegistry>("worldregistry")
+        instanceRegistry
+            ?.tryGetInstance<WorldRegistry>("worldregistry")
             ?.defaultItem;
     if (world != null) {
       await player.loadWorld(world);
@@ -469,28 +469,17 @@ class PositionUpdatePacket7 extends Packet
 class OrientationUpdatePacket7 extends Packet
     with SendablePacket<OrientationUpdatePacketData> {
   static final DataParser parser =
-      DataParserBuilder()
-          .bigEndian()
-          .uint8()
-          .sint8()
-          .uint8()
-          .uint8()
-          .build();
+      DataParserBuilder().bigEndian().uint8().sint8().uint8().uint8().build();
   int id = 0x09;
   int length = 10;
   OrientationUpdatePacketData decode(List<int> data) {
     var decodedData = parser.decode(data);
     return OrientationUpdatePacketData(
       playerId: decodedData[1],
-      position: EntityPosition(
-        0,
-        0,
-        0,
-        decodedData[2],
-        decodedData[3]
-      ),
+      position: EntityPosition(0, 0, 0, decodedData[2], decodedData[3]),
     );
   }
+
   @override
   List<int> encode(OrientationUpdatePacketData data) {
     return parser.encode([

@@ -6,7 +6,7 @@ import 'package:events_emitter/events_emitter.dart';
 import 'block.dart';
 import 'datatypes.dart';
 import 'entity.dart';
-import 'networking/protocols/7/packetdata.dart';
+import 'networking/packetdata.dart';
 import 'registries/namedregistry.dart';
 import 'worldformats/hworld.dart';
 import 'worldformats/worldformat.dart';
