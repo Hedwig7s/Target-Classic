@@ -1,4 +1,5 @@
 import 'package:events_emitter/events_emitter.dart';
+import 'package:logging/logging.dart';
 
 import 'datatypes.dart';
 import 'networking/connection.dart';
@@ -13,11 +14,14 @@ abstract class Entity implements IRRegisterable {
   final Map<IncrementalRegistry, int> ids = {};
   final String name;
   final String fancyName;
+  final emitter = EventEmitter();
+  final Logger logger;
   bool destroyed = false;
   int? worldId;
-  final emitter = EventEmitter();
 
-  Entity({required this.name, fancyName}) : fancyName = fancyName ?? name;
+  Entity({required this.name, fancyName})
+    : logger = Logger("Entity $name"),
+      fancyName = fancyName ?? name;
 
   spawn(World world) {
     if (this.world != null) {

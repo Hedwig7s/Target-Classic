@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:events_emitter/emitters/event_emitter.dart';
+import 'package:logging/logging.dart';
 import '../utility/clearemitter.dart';
 
 import '../constants.dart';
@@ -12,6 +13,7 @@ import '../registries/instanceregistry.dart';
 class Connection {
   final int id;
   final Socket socket;
+  final Logger logger;
   List<int> buffer = [];
   bool closed = false;
   bool socketClosed = false;
@@ -21,14 +23,15 @@ class Connection {
   Player? player;
   EventEmitter emitter = EventEmitter();
 
-  Connection(this.id, this.socket, {this.instanceRegistry}) {
+  Connection(this.id, this.socket, {this.instanceRegistry})
+    : logger = Logger("Connection $id") {
     socket.listen(
       (data) {
         buffer.addAll(data);
         processIncoming();
       },
       onDone: () {
-        print('Client disconnected');
+        logger.info('Client disconnected');
         socketClosed = true;
         if (closed) return;
         close();
@@ -46,25 +49,25 @@ class Connection {
       while (buffer.length > 0) {
         int id = buffer[0];
         if (id < 0 || id >= PacketIds.values.length) {
-          print('Invalid packet id: $id');
+          logger.warning('Invalid packet id: $id');
           this.close();
           return;
         }
         PacketIds packetId = PacketIds.values[id];
         if (protocol == null && packetId != PacketIds.identification) {
-          print('Protocol not set, closing connection');
+          logger.warning('Protocol not set, closing connection');
           this.close();
           return;
         }
         if (protocol == null && packetId == PacketIds.identification) {
           if (buffer.length < 2) {
-            print('Buffer too small for identification packet');
+            logger.warning('Buffer too small for identification packet');
             return;
           }
           int protocolVersion = buffer[1];
           Protocol? protocol = protocols[protocolVersion];
           if (protocol == null) {
-            print('Invalid protocol version: $protocolVersion');
+            logger.warning('Invalid protocol version: $protocolVersion');
             this.close();
             return;
           }
@@ -72,7 +75,7 @@ class Connection {
         }
         Packet? packet = protocol!.packets[packetId];
         if (packet == null) {
-          print('Invalid packet id: $packetId');
+          logger.warning('Invalid packet id: $packetId');
           this.close();
           return;
         }
@@ -82,7 +85,7 @@ class Connection {
         List<int> packetData = buffer.sublist(0, packet.length);
         buffer = buffer.sublist(packet.length);
         if (packet is! ReceivablePacket) {
-          print('Packet is not receivable: $packet');
+          logger.warning('Packet is not receivable: $packet');
           this.close();
           return;
         }
@@ -90,7 +93,7 @@ class Connection {
         await receivablePacket.receive(this, packetData);
       }
     } catch (e, stackTrace) {
-      print('Error processing incoming data: $e\n$stackTrace');
+      logger.warning('Error processing incoming data: $e\n$stackTrace');
       this.close();
     } finally {
       processingIncoming = false;
@@ -103,7 +106,7 @@ class Connection {
   }
 
   onError(error) {
-    print('Error: $error');
+    logger.warning('Error: $error');
     if (closed) return;
     socket.close();
   }
@@ -115,10 +118,10 @@ class Connection {
       emitter.emit("closed");
       clearEmitter(emitter);
       if (socketClosed) return;
-      print('Closing connection $id');
+      logger.info('Closing connection $id');
       socket.destroy();
     } catch (e) {
-      print('Error closing connection: $e');
+      logger.warning('Error closing connection: $e');
     }
   }
 }

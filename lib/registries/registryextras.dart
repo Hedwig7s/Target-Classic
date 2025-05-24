@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:logging/logging.dart';
+
 import '../config/serverconfig.dart';
 import '../constants.dart';
 import 'package:path/path.dart' as p;
@@ -22,7 +24,7 @@ Future<InstanceRegistry> getServerInstanceRegistry() async {
   try {
     serverConfig = await ServerConfig.loadFromFile();
   } catch (e) {
-    print("Failed to load config: $e");
+    Logger.root.warning("Failed to load config: $e");
     serverConfig = ServerConfig();
   }
   serverConfig.saveToFile();
@@ -40,7 +42,7 @@ Future<InstanceRegistry> getServerInstanceRegistry() async {
     );
   } catch (e, stackTrace) {
     if (e is FileSystemException) {
-      print("File not found, creating default world");
+      Logger.root.warning("File not found, creating default world");
     } else {
       Error.throwWithStackTrace(
         Exception("Failed to load world: $e"),

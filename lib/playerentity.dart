@@ -58,7 +58,7 @@ class PlayerEntity extends Entity {
 
   @override
   destroy({byPlayer = false}) {
-    if (!byPlayer) print("Warning: Destroying player entity $name");
+    if (!byPlayer) logger.warning("Warning: Destroying player entity $name");
     return super.destroy();
   }
 }

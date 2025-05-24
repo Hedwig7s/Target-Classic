@@ -67,10 +67,13 @@ class IdentificationPacket7 extends Packet
     instanceRegistry
         ?.tryGetInstance<NamedRegistry>("playerregistry")
         ?.register(player);
+    connection.logger.info(
+      "Connection from ${connection.socket.remoteAddress.address}:${connection.socket.remotePort} identified as ${decodedData.name}",
+    );
     try {
       player.identify();
     } catch (e, stackTrace) {
-      print("Error identifying player: $e\n$stackTrace");
+      connection.logger.warning("Error identifying player: $e\n$stackTrace");
       connection.close();
       return;
     }
@@ -82,7 +85,9 @@ class IdentificationPacket7 extends Packet
       await player.loadWorld(world);
       player.spawn();
     } else {
-      print('No default world found for player ${player.name}');
+      connection.logger.severe(
+        'No default world found for player ${player.name}',
+      );
     }
   }
 }
@@ -112,7 +117,7 @@ class PingPacket7 extends Packet
 }
 
 class LevelInitializePacket7 extends Packet
-    with SendablePacket<LevelInitializePacketData>, ReceivablePacket {
+    with SendablePacket<LevelInitializePacketData> {
   static final DataParser parser =
       DataParserBuilder().bigEndian().uint8().build();
 
@@ -126,12 +131,6 @@ class LevelInitializePacket7 extends Packet
   @override
   List<int> encode(LevelInitializePacketData data) {
     return parser.encode([data.id]);
-  }
-
-  @override
-  Future<void> receive(Connection connection, List<int> data) async {
-    var decodedData = decode(data);
-    print('Received Level Initialize Packet: $decodedData');
   }
 }
 
@@ -237,11 +236,11 @@ class SetBlockClientPacket7 extends Packet
     if (connection.player?.world == null) return;
     var decodedData = decode(data);
     if (decodedData.mode != 0 && decodedData.mode != 1) {
-      print("Invalid mode: ${decodedData.mode}");
+      connection.logger.warning("Invalid mode: ${decodedData.mode}");
       return;
     }
     if (decodedData.blockId >= BlockID.values.length) {
-      print("Invalid block ID: ${decodedData.blockId}");
+      connection.logger.warning("Invalid block ID: ${decodedData.blockId}");
       return;
     }
     World world = connection.player!.world!;

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:events_emitter/events_emitter.dart';
+import 'package:logging/logging.dart';
 
 import 'connection.dart';
 import '../registries/instanceregistry.dart';
@@ -9,10 +10,11 @@ class Server {
   final String host;
   final int port;
   final Map<int, Connection> connections = {};
+  final EventEmitter emitter = EventEmitter();
+  final Logger logger = Logger("Server");
   int connectionsEver = 0;
   ServerSocket? socket;
   InstanceRegistry? instanceRegistry;
-  EventEmitter emitter = EventEmitter();
 
   Server(this.host, this.port, {this.instanceRegistry}) {
     if (host.isEmpty) {
@@ -26,7 +28,7 @@ class Server {
     this.socket = await ServerSocket.bind(this.host, this.port);
     this.socket!.listen(
       (Socket socket) {
-        print(
+        logger.info(
           'Connection from ${socket.remoteAddress.address}:${socket.remotePort}',
         );
         int id = connectionsEver++;
@@ -42,10 +44,10 @@ class Server {
         });
       },
       onError: (error) {
-        print('Error: $error');
+        logger.severe('Error: $error');
       },
       onDone: () {
-        print('Server stopped');
+        logger.info('Server stopped');
       },
     );
   }

@@ -1,4 +1,5 @@
 import 'package:events_emitter/events_emitter.dart';
+import 'package:logging/logging.dart';
 import 'config/serverconfig.dart';
 
 import 'block.dart';
@@ -39,14 +40,15 @@ class Player implements Nameable<String> {
   World? world;
   bool destroyed = false;
   final EventEmitter emitter = EventEmitter();
-  PlayerListenedWorldEvents worldEvents = PlayerListenedWorldEvents();
+  final PlayerListenedWorldEvents worldEvents = PlayerListenedWorldEvents();
+  final Logger logger;
 
   Player({
     required this.name,
     required this.fancyName,
     this.instanceRegistry,
     this.connection,
-  }) {
+  }) : logger = Logger("Player $name") {
     this.entity = PlayerEntity(name: name, fancyName: fancyName, player: this);
     this.connection?.emitter.on("closed", (data) {
       this.destroy();
@@ -71,7 +73,7 @@ class Player implements Nameable<String> {
       serverName = config.serverName;
       motd = config.motd;
     } else
-      print(
+      logger.warning(
         "Warning: No server config found for player $name. Name and motd not set",
       );
 
@@ -108,6 +110,7 @@ class Player implements Nameable<String> {
   }
 
   Future<void> loadWorld(World world) async {
+    logger.info("Loading world ${world.name}");
     worldEvents.clear();
     if (connection?.protocol != null) {
       var packets = await connection!.protocol!.packets;
@@ -141,7 +144,7 @@ class Player implements Nameable<String> {
               PacketIds.setBlockServer,
             );
         if (setBlockPacket == null) {
-          print("Packet ${PacketIds.setBlockServer} not found");
+          logger.warning("Packet ${PacketIds.setBlockServer} not found");
           return;
         }
         Vector3I position = blockData.position;
@@ -159,7 +162,9 @@ class Player implements Nameable<String> {
               PacketIds.setPositionAndOrientation,
             );
         if (setPositionPacket == null) {
-          print("Packet ${PacketIds.setPositionAndOrientation} not found");
+          logger.warning(
+            "Packet ${PacketIds.setPositionAndOrientation} not found",
+          );
           return;
         }
         entity.emitter.on<EntityPosition>("moved", (EntityPosition position) {
@@ -197,7 +202,7 @@ class Player implements Nameable<String> {
   }
 
   void destroy() {
-    print("Destroying player $name");
+    logger.fine("Destroying player $name");
     emitter.emit('destroyed');
     clearEmitter(emitter);
     this.worldEvents.setBlock?.cancel();
