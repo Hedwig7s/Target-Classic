@@ -1,3 +1,5 @@
+import '../../protocol.dart';
+
 import '../../../registries/worldregistry.dart';
 
 import '../../../block.dart';
@@ -74,7 +76,7 @@ class IdentificationPacket7 extends Packet
       player.identify();
     } catch (e, stackTrace) {
       connection.logger.warning("Error identifying player: $e\n$stackTrace");
-      connection.close();
+      connection.close("Error occurred during identification");
       return;
     }
     World? world =
@@ -541,13 +543,24 @@ class MessagePacket7 extends Packet
     String message = decodedData.message.trim();
     if (message.isEmpty) return;
     connection.logger.info("Message from ${player.name}: $message");
+    // TODO: Handle message sending logic
+    connection.protocol
+        ?.getPacket<SendablePacket<MessagePacketData>>(PacketIds.message)
+        ?.send(
+          connection,
+          MessagePacketData(playerId: 0, message: "&cChat not implemented yet"),
+        );
   }
 }
 
 class DisconnectPlayerPacket7 extends Packet
     with SendablePacket<DisconnectPlayerPacketData> {
   static final DataParser parser =
-      DataParserBuilder().bigEndian().uint8().sint8().build();
+      DataParserBuilder()
+          .bigEndian()
+          .uint8()
+          .fixedString(64, Encoding.getByName("ascii")!, padding: ' ')
+          .build();
   int id = 0x0C;
   int length = 2;
 
@@ -559,6 +572,13 @@ class DisconnectPlayerPacket7 extends Packet
   @override
   List<int> encode(DisconnectPlayerPacketData data) {
     return parser.encode([data.id, data.reason]);
+  }
+
+  @override
+  void send(Connection connection, DisconnectPlayerPacketData data) {
+    if (connection.socketClosed) return;
+    var encodedData = encode(data);
+    connection.write(encodedData, force: true);
   }
 }
 

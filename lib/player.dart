@@ -297,10 +297,20 @@ class Player implements Nameable<String> {
     emitter.emit("worldLoaded", world);
   }
 
+  void disconnect(String reason) {
+    if (connection?.closed ?? false) return;
+    logger.info("Disconnecting player $name");
+    if (!connection!.closed) {
+      connection!.close(reason);
+    }
+    emitter.emit('disconnected');
+  }
+
   void destroy() {
     logger.fine("Destroying player $name");
     emitter.emit('destroyed');
     clearEmitter(emitter);
+    this.connection?.close("Player destroyed");
     this.worldEvents.setBlock?.cancel();
     this.worldEvents.entityAdded?.cancel();
     this.worldEvents.entityRemoved?.cancel();

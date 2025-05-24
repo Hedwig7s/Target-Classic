@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:events_emitter/emitters/event_emitter.dart';
 import 'package:logging/logging.dart';
+import 'packetdata.dart';
 import '../utility/clearemitter.dart';
 
 import '../constants.dart';
@@ -61,7 +62,7 @@ class Connection {
         }
         if (protocol == null && packetId == PacketIds.identification) {
           if (buffer.length < 2) {
-            logger.warning('Buffer too small for identification packet');
+            logger.fine('Buffer too small for identification packet');
             return;
           }
           int protocolVersion = buffer[1];
@@ -76,7 +77,7 @@ class Connection {
         Packet? packet = protocol!.packets[packetId];
         if (packet == null) {
           logger.warning('Invalid packet id: $packetId');
-          this.close();
+          this.close("Invalid packet: Unknown packet id: $packetId");
           return;
         }
         if (buffer.length < packet.length) {
@@ -86,7 +87,9 @@ class Connection {
         buffer = buffer.sublist(packet.length);
         if (packet is! ReceivablePacket) {
           logger.warning('Packet is not receivable: $packet');
-          this.close();
+          this.close(
+            "Invalid packet: Packet ${id} cannot be sent to the server.",
+          );
           return;
         }
         ReceivablePacket receivablePacket = packet;
@@ -94,34 +97,61 @@ class Connection {
       }
     } catch (e, stackTrace) {
       logger.warning('Error processing incoming data: $e\n$stackTrace');
-      this.close();
+      this.close("Internal error while processing incoming data.");
     } finally {
       processingIncoming = false;
     }
   }
 
-  write(List<int> data) {
-    if (closed) return;
+  write(List<int> data, {bool force = false}) {
+    if (closed && (!force && !socketClosed)) return;
     socket.add(data);
   }
 
   onError(error) {
     logger.warning('Error: $error');
     if (closed) return;
-    socket.close();
+    this.close("An internal error occurred");
   }
 
-  close() {
+  close([
+    String? reason = null,
+    Duration receiveReasonDelay = const Duration(milliseconds: 100),
+  ]) {
     try {
       if (closed) return;
+      logger.info('Closing connection $id${reason != null ? ': $reason' : ''}');
       closed = true;
+      player?.disconnect("Connection closed");
+      if (reason != null && !socketClosed && protocol != null) {
+        var disconnectPacket = protocol
+            ?.getPacket<SendablePacket<DisconnectPlayerPacketData>>(
+              PacketIds.disconnectPlayer,
+            );
+        if (disconnectPacket != null) {
+          disconnectPacket.send(
+            this,
+            DisconnectPlayerPacketData(reason: reason),
+          );
+        } else {
+          logger.warning("Disconnect packet not found");
+        }
+        // Give client time to process disconnect
+        Future.delayed(receiveReasonDelay, () {
+          if (socketClosed) return;
+          socket.destroy();
+        });
+        return;
+      }
       emitter.emit("closed");
       clearEmitter(emitter);
       if (socketClosed) return;
-      logger.info('Closing connection $id');
       socket.destroy();
     } catch (e) {
       logger.warning('Error closing connection: $e');
+      try {
+        socket.destroy();
+      } catch (ignored) {}
     }
   }
 }
