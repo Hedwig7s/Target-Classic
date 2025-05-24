@@ -156,18 +156,27 @@ class Player implements Nameable<String> {
       };
       EventCallback<Entity> onEntityAdded = (Entity entity) {
         if (entity == this.entity) return;
+
         entity.spawnFor(connection!);
+
+        var serverConfig = instanceRegistry?.tryGetInstance<ServerConfig>(
+          "serverconfig",
+        );
+        bool useRelativeMovements = serverConfig?.useRelativeMovements ?? false;
+
         var setPositionPacket = connection!.protocol
             ?.getPacket<SendablePacket<SetPositionAndOrientationPacketData>>(
               PacketIds.setPositionAndOrientation,
             );
+
         if (setPositionPacket == null) {
           logger.warning(
             "Packet ${PacketIds.setPositionAndOrientation} not found",
           );
           return;
         }
-        entity.emitter.on<EntityPosition>("moved", (EntityPosition position) {
+
+        void sendFullPositionUpdate(EntityPosition position) {
           setPositionPacket.send(
             connection!,
             SetPositionAndOrientationPacketData(
@@ -175,7 +184,94 @@ class Player implements Nameable<String> {
               position: position,
             ),
           );
-        });
+        }
+
+        EventCallback<EntityPosition> onMoved;
+
+        if (useRelativeMovements) {
+          var posAndRotUpdatePacket = connection!.protocol?.getPacket<
+            SendablePacket<PositionAndOrientationUpdatePacketData>
+          >(PacketIds.positionAndOrientationUpdate);
+          var positionUpdatePacket = connection!.protocol
+              ?.getPacket<SendablePacket<PositionUpdatePacketData>>(
+                PacketIds.positionUpdate,
+              );
+          var orientationUpdatePacket = connection!.protocol
+              ?.getPacket<SendablePacket<OrientationUpdatePacketData>>(
+                PacketIds.orientationUpdate,
+              );
+
+          if (posAndRotUpdatePacket != null &&
+              orientationUpdatePacket != null &&
+              positionUpdatePacket != null) {
+            EntityPosition? previous;
+            int updatesSinceFullSync = 0;
+            const int FULL_SYNC_INTERVAL = 50;
+
+            onMoved = (EntityPosition position) {
+              if (previous == null ||
+                  updatesSinceFullSync >= FULL_SYNC_INTERVAL) {
+                sendFullPositionUpdate(position);
+                previous = position;
+                updatesSinceFullSync = 0;
+                return;
+              }
+
+              EntityPosition change = position - previous!;
+
+              if (change.vector == Vector3F(0, 0, 0) &&
+                  change.yaw == previous!.yaw &&
+                  change.pitch == previous!.pitch)
+                return;
+
+              if (change.x.abs() >= 3.9 ||
+                  change.y.abs() >= 3.9 ||
+                  change.z.abs() >= 3.9) {
+                sendFullPositionUpdate(position);
+                previous = position;
+                updatesSinceFullSync = 0;
+                return;
+              }
+
+              if (position.vector == previous!.vector) {
+                orientationUpdatePacket.send(
+                  connection!,
+                  OrientationUpdatePacketData(
+                    playerId: entity.worldId!,
+                    position: change,
+                  ),
+                );
+              } else if (position.yaw == previous!.yaw &&
+                  position.pitch == previous!.pitch) {
+                positionUpdatePacket.send(
+                  connection!,
+                  PositionUpdatePacketData(
+                    playerId: entity.worldId!,
+                    position: change.vector,
+                  ),
+                );
+              } else {
+                posAndRotUpdatePacket.send(
+                  connection!,
+                  PositionAndOrientationUpdatePacketData(
+                    playerId: entity.worldId!,
+                    position: change,
+                  ),
+                );
+              }
+
+              previous = position;
+              updatesSinceFullSync++;
+            };
+          } else {
+            onMoved = sendFullPositionUpdate;
+          }
+        } else {
+          onMoved = sendFullPositionUpdate;
+        }
+
+        worldEvents.entityMovedListeners[entity] = entity.emitter
+            .on<EntityPosition>("moved", onMoved);
       };
       EventCallback<Entity> onEntityRemoved = (Entity entity) {
         if (entity == this.entity) return;

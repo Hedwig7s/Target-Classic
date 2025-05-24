@@ -12,12 +12,14 @@ part 'serverconfig.g.dart';
 abstract class ServerConfig with _$ServerConfig {
   static const String CONFIG_NAME = "server.toml";
   const factory ServerConfig([
+    // Only for breaking changes needing adapting e.g. renaming a key
     @Default(1) final int version,
     @Default("0.0.0.0") final String host,
     @Default(25565) final int port,
     @Default("world") final String defaultWorld,
     @Default("Target-Classic") final String serverName,
     @Default("A classic server in dart") final String motd,
+    @Default(false) final bool useRelativeMovements,
   ]) = _ServerConfig;
   factory ServerConfig.fromJson(Map<String, dynamic> json) =>
       _$ServerConfigFromJson(json);
