@@ -19,5 +19,9 @@ class Protocol7 extends Protocol {
         PositionAndOrientationUpdatePacket7(),
     PacketIds.positionUpdate: PositionUpdatePacket7(),
     PacketIds.orientationUpdate: OrientationUpdatePacket7(),
+    PacketIds.despawnPlayer: DespawnPlayerPacket7(),
+    PacketIds.message: MessagePacket7(),
+    PacketIds.disconnectPlayer: DisconnectPlayerPacket7(),
+    PacketIds.updateUserType: UpdateUserTypePacket7(),
   };
 }

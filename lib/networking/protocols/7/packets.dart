@@ -490,3 +490,92 @@ class OrientationUpdatePacket7 extends Packet
     ]);
   }
 }
+
+class DespawnPlayerPacket7 extends Packet
+    with SendablePacket<DespawnPlayerPacketData> {
+  static final DataParser parser =
+      DataParserBuilder().bigEndian().uint8().sint8().build();
+  int id = 0x0A;
+  int length = 2;
+
+  DespawnPlayerPacketData decode(List<int> data) {
+    var decodedData = parser.decode(data);
+    return DespawnPlayerPacketData(playerId: decodedData[1]);
+  }
+
+  @override
+  List<int> encode(DespawnPlayerPacketData data) {
+    return parser.encode([data.id, data.playerId]);
+  }
+}
+
+class MessagePacket7 extends Packet
+    with
+        SendablePacket<MessagePacketData>,
+        ReceivablePacket<MessagePacketData> {
+  static final DataParser parser =
+      DataParserBuilder()
+          .bigEndian()
+          .uint8()
+          .sint8()
+          .fixedString(64, Encoding.getByName('ascii')!, padding: ' ')
+          .build();
+  int id = 0x0B;
+  int length = 66;
+
+  MessagePacketData decode(List<int> data) {
+    var decodedData = parser.decode(data);
+    return MessagePacketData(playerId: decodedData[1], message: decodedData[2]);
+  }
+
+  @override
+  List<int> encode(MessagePacketData data) {
+    return parser.encode([data.id, data.playerId, data.message]);
+  }
+
+  @override
+  Future<void> receive(Connection connection, List<int> data) async {
+    var decodedData = decode(data);
+    if (connection.player == null) return;
+    Player player = connection.player!;
+    String message = decodedData.message.trim();
+    if (message.isEmpty) return;
+    connection.logger.info("Message from ${player.name}: $message");
+  }
+}
+
+class DisconnectPlayerPacket7 extends Packet
+    with SendablePacket<DisconnectPlayerPacketData> {
+  static final DataParser parser =
+      DataParserBuilder().bigEndian().uint8().sint8().build();
+  int id = 0x0C;
+  int length = 2;
+
+  DisconnectPlayerPacketData decode(List<int> data) {
+    var decodedData = parser.decode(data);
+    return DisconnectPlayerPacketData(reason: decodedData[1]);
+  }
+
+  @override
+  List<int> encode(DisconnectPlayerPacketData data) {
+    return parser.encode([data.id, data.reason]);
+  }
+}
+
+class UpdateUserTypePacket7 extends Packet
+    with SendablePacket<UpdateUserTypePacketData> {
+  static final DataParser parser =
+      DataParserBuilder().bigEndian().uint8().sint8().build();
+  int id = 0x0D;
+  int length = 2;
+
+  UpdateUserTypePacketData decode(List<int> data) {
+    var decodedData = parser.decode(data);
+    return UpdateUserTypePacketData(userType: decodedData[1]);
+  }
+
+  @override
+  List<int> encode(UpdateUserTypePacketData data) {
+    return parser.encode([data.id, data.userType]);
+  }
+}
