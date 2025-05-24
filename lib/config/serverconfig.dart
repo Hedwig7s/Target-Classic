@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:json5/json5.dart';
 import 'package:path/path.dart' as p;
+import 'package:toml/toml.dart';
 import '../constants.dart';
 
 part 'serverconfig.freezed.dart';
@@ -10,7 +10,7 @@ part 'serverconfig.g.dart';
 
 @freezed
 abstract class ServerConfig with _$ServerConfig {
-  static const String CONFIG_NAME = "server.json5";
+  static const String CONFIG_NAME = "server.toml";
   const factory ServerConfig([
     @Default("0.0.0.0") final String host,
     @Default(25565) final int port,
@@ -27,17 +27,17 @@ abstract class ServerConfig with _$ServerConfig {
       throw FileSystemException('File not found', path);
     }
     final content = await file.readAsString();
-    return ServerConfig.fromJson5(content);
+    return ServerConfig.fromToml(content);
   }
 
-  static ServerConfig fromJson5(String json) {
-    return ServerConfig.fromJson(JSON5.parse(json));
+  static ServerConfig fromToml(String toml) {
+    return ServerConfig.fromJson(TomlDocument.parse(toml).toMap());
   }
 }
 
 extension ServerConfigExtension on ServerConfig {
-  String toJson5() {
-    return JSON5.stringify(toJson());
+  String toToml() {
+    return TomlDocument.fromMap(toJson()).toString();
   }
 
   Future<void> saveToFile([String? path]) async {
@@ -46,6 +46,6 @@ extension ServerConfigExtension on ServerConfig {
     if (!await file.exists()) {
       await file.create(recursive: true);
     }
-    await file.writeAsString(toJson5());
+    await file.writeAsString(toToml());
   }
 }
