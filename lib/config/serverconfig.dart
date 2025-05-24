@@ -12,6 +12,7 @@ part 'serverconfig.g.dart';
 abstract class ServerConfig with _$ServerConfig {
   static const String CONFIG_NAME = "server.toml";
   const factory ServerConfig([
+    @Default(1) final int version,
     @Default("0.0.0.0") final String host,
     @Default(25565) final int port,
     @Default("world") final String defaultWorld,
