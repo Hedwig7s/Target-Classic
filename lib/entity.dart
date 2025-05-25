@@ -25,7 +25,7 @@ abstract class Entity implements IRRegisterable {
 
   spawn(World world) {
     if (this.world != null) {
-      this.world!.removeEntity(this);
+      despawn();
     }
     this.world = world;
     world.addEntity(this);
@@ -38,9 +38,14 @@ abstract class Entity implements IRRegisterable {
     emitter.emit('moved', newPosition);
   }
 
+  despawn() {
+    this.world?.removeEntity(this);
+    emitter.emit("despawn");
+  }
+
   destroy() {
     if (this.world != null) {
-      this.world!.removeEntity(this);
+      despawn();
     }
     emitter.emit('destroyed');
     clearEmitter(emitter);

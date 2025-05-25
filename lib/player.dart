@@ -136,6 +136,7 @@ class Player implements Nameable<String> {
           sizeZ: world.size.z,
         ),
       );
+      var endTime = DateTime.now();
       EventCallback<({Vector3I position, BlockID block})> onSetBlock = (
         ({Vector3I position, BlockID block}) blockData,
       ) {
@@ -273,11 +274,26 @@ class Player implements Nameable<String> {
         worldEvents.entityMovedListeners[entity] = entity.emitter
             .on<EntityPosition>("moved", onMoved);
       };
-      EventCallback<Entity> onEntityRemoved = (Entity entity) {
+      EventCallback<(Entity, int)> onEntityRemoved = (
+        (Entity entity, int worldId) data,
+      ) {
+        Entity entity = data.$1;
+        int worldId = data.$2;
         if (entity == this.entity) return;
         worldEvents.entityMovedListeners[entity]?.cancel();
         worldEvents.entityMovedListeners.remove(entity);
-        // TODO: Send despawn packet
+        var despawnPacket = connection!.protocol
+            ?.getPacket<SendablePacket<DespawnPlayerPacketData>>(
+              PacketIds.despawnPlayer,
+            );
+        if (despawnPacket == null) {
+          logger.warning("Packet ${PacketIds.despawnPlayer} not found");
+          return;
+        }
+        despawnPacket.send(
+          connection!,
+          DespawnPlayerPacketData(playerId: worldId),
+        );
       };
       for (var entity in world.entities.values) {
         onEntityAdded.call(entity);
@@ -286,7 +302,7 @@ class Player implements Nameable<String> {
         "entityAdded",
         onEntityAdded,
       );
-      worldEvents.entityRemoved = world.emitter.on<Entity>(
+      worldEvents.entityRemoved = world.emitter.on<(Entity, int)>(
         "entityRemoved",
         onEntityRemoved,
       );
@@ -308,13 +324,11 @@ class Player implements Nameable<String> {
 
   void destroy() {
     logger.fine("Destroying player $name");
+    this.entity?.despawn();
     emitter.emit('destroyed');
     clearEmitter(emitter);
     this.connection?.close("Player destroyed");
-    this.worldEvents.setBlock?.cancel();
-    this.worldEvents.entityAdded?.cancel();
-    this.worldEvents.entityRemoved?.cancel();
-    worldEvents.entityMovedListeners.clear();
+    this.worldEvents.clear();
 
     for (var listener in worldEvents.entityMovedListeners.values) {
       listener.cancel();

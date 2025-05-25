@@ -104,7 +104,7 @@ class Connection {
   }
 
   write(List<int> data, {bool force = false}) {
-    if (closed && (!force && !socketClosed)) return;
+    if ((closed && !force) || (force && !socketClosed)) return;
     socket.add(data);
   }
 
@@ -147,8 +147,9 @@ class Connection {
       clearEmitter(emitter);
       if (socketClosed) return;
       socket.destroy();
-    } catch (e) {
-      logger.warning('Error closing connection: $e');
+    } catch (e, stackTrace) {
+      print(e);
+      logger.warning("Error closing connection: $e\n$stackTrace");
       try {
         socket.destroy();
       } catch (ignored) {}

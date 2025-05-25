@@ -211,10 +211,11 @@ class World implements Nameable<String> {
         !entities.containsKey(entity.worldId)) {
       throw Exception('Entity is not in this world');
     }
-    entities.remove(entity.worldId);
+    int worldId = entity.worldId!;
+    entities.remove(worldId);
     entity.worldId = null;
     entity.world = null;
-    emitter.emit('entityRemoved', entity);
+    emitter.emit('entityRemoved', (entity, worldId));
   }
 
   Future<void> save({String? path, WorldFormat? format}) async {
