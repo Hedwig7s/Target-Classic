@@ -15,6 +15,7 @@ class Server {
   int connectionsEver = 0;
   ServerSocket? socket;
   InstanceRegistry? instanceRegistry;
+  bool closed = false;
 
   Server(this.host, this.port, {this.instanceRegistry}) {
     if (host.isEmpty) {
@@ -28,6 +29,11 @@ class Server {
     this.socket = await ServerSocket.bind(this.host, this.port);
     this.socket!.listen(
       (Socket socket) {
+        if (closed) {
+          logger.warning("Server is closed, rejecting connection");
+          socket.close();
+          return;
+        }
         logger.info(
           'Connection from ${socket.remoteAddress.address}:${socket.remotePort}',
         );
@@ -50,5 +56,20 @@ class Server {
         logger.info('Server stopped');
       },
     );
+  }
+
+  void stop() async {
+    if (closed) {
+      logger.warning("Server is already stopped");
+      return;
+    }
+    closed = true;
+    logger.info("Stopping...");
+    for (var connection in connections.values) {
+      connection.close("Server is stopping");
+    }
+    await socket?.close();
+    connections.clear();
+    emitter.emit("serverStopped");
   }
 }

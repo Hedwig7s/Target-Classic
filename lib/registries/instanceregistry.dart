@@ -15,7 +15,9 @@ class InstanceRegistry {
   T? tryGetInstance<T>(String name) {
     if (!_instances.containsKey(name)) return null;
     if (_instances[name] is! T) {
-      throw Exception('Service $name is not of type ${T.toString()}');
+      throw Exception(
+        'Service $name is not of type ${T.toString()}. Got ${_instances[name].runtimeType}',
+      );
     }
     return _instances[name];
   }

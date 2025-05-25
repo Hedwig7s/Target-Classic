@@ -1,10 +1,23 @@
+import 'dart:io';
+
+import 'package:dotenv/dotenv.dart';
+
+import 'lib/registries/worldregistry.dart';
+
 import 'lib/networking/server.dart';
 import 'lib/registries/registryextras.dart';
 import 'lib/registries/instanceregistry.dart';
 import 'package:logging/logging.dart';
 
 void main() async {
+  var env = DotEnv(includePlatformEnvironment: true)..load();
+  Logger.root.level = Level.LEVELS.firstWhere(
+    (level) => level.name.toLowerCase() == env['LOG_LEVEL']?.toLowerCase(),
+    orElse: () => Level.INFO,
+  );
   final colors = {
+    Level.FINEST: "\x1b[30;2m",
+    Level.FINER: "\x1b[30;2m",
     Level.FINE: "\x1b[30;1m",
     Level.INFO: "\x1b[37m",
     Level.WARNING: "\x1b[33m",
@@ -20,4 +33,27 @@ void main() async {
   Server server = instanceRegistry.getInstance<Server>("server");
   server.start();
   Logger.root.info("Server started on ${server.host}:${server.port}");
+  int caughtInterrupts = 0;
+  ProcessSignal.sigint.watch().listen((signal) {
+    caughtInterrupts++;
+    if (caughtInterrupts == 2) {
+      Logger.root.warning("Force exiting now.");
+      exit(1);
+    }
+    Logger.root.info(
+      "Server shutting down...",
+    ); // TODO: If commands are implemented, move shutdown to a seperate function
+    server.stop();
+    var worlds =
+        instanceRegistry
+            .tryGetInstance<WorldRegistry>("worldregistry")
+            ?.getAll();
+    if (worlds != null) {
+      for (var world in worlds) {
+        world.save();
+      }
+    }
+    Logger.root.info("Server shutdown complete.");
+    exit(0);
+  });
 }

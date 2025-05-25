@@ -6,3 +6,4 @@
 /config
 *.g.dart
 *.freezed.dart
+.env

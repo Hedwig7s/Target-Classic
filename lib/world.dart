@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:events_emitter/events_emitter.dart';
+import 'package:logging/logging.dart';
 import 'block.dart';
 import 'datatypes.dart';
 import 'entity.dart';
@@ -61,6 +62,7 @@ class World implements Nameable<String> {
   final List<int> blocks;
   final EventEmitter emitter = EventEmitter();
   final String? filePath;
+  final Logger logger;
 
   World({
     required this.size,
@@ -68,7 +70,8 @@ class World implements Nameable<String> {
     required this.name,
     this.filePath,
     blocks,
-  }) : this.blocks = blocks ?? List.filled(size.x * size.y * size.z, 0);
+  }) : this.logger = Logger('World $name'),
+       this.blocks = blocks ?? List.filled(size.x * size.y * size.z, 0);
 
   static Future<World> fromFile(String filePath, WorldFormat? format) async {
     File file = File(filePath);
@@ -220,6 +223,7 @@ class World implements Nameable<String> {
 
   Future<void> save({String? path, WorldFormat? format}) async {
     String? outPath = path ?? filePath;
+    logger.info('Saving to $outPath');
     if (outPath == null) throw ArgumentError("No path provided!");
     format ??= HWorldFormat();
     List<int> encoded = format.serialize(this);
@@ -228,5 +232,6 @@ class World implements Nameable<String> {
       await outFile.create(recursive: true);
     }
     await outFile.writeAsBytes(encoded);
+    logger.info('World saved to $outPath');
   }
 }
