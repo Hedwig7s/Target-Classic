@@ -57,6 +57,13 @@ class IdentificationPacket7 extends Packet
   @override
   Future<void> receive(Connection connection, List<int> data) async {
     IdentificationPacketData decodedData = decode(data);
+    if (decodedData.name
+        .replaceAllMapped(RegExp('[\x00-\x1F\x7F-\xFF]'), (match) => '')
+        .isEmpty) {
+      connection.logger.warning("Invalid player name: ${decodedData.name}");
+      connection.close("Invalid player name");
+      return;
+    }
     // TODO: Name verification
     Player player = Player(
       name: decodedData.name,
@@ -541,15 +548,38 @@ class MessagePacket7 extends Packet
     if (connection.player == null) return;
     Player player = connection.player!;
     String message = decodedData.message.trim();
+    message = message.replaceAllMapped(RegExp("%([0-9a-fA-F])"), (match) {
+      // Damn you classicube
+      String colorCode = match.group(1) ?? "";
+      if (colorCode.isEmpty) {
+        return match.group(0) ?? "";
+      }
+      return "&$colorCode";
+    });
     if (message.isEmpty) return;
-    connection.logger.info("Message from ${player.name}: $message");
-    // TODO: Handle message sending logic
-    connection.protocol
-        ?.getPacket<SendablePacket<MessagePacketData>>(PacketIds.message)
-        ?.send(
-          connection,
-          MessagePacketData(playerId: 0, message: "&cChat not implemented yet"),
-        );
+    if (player.chatroom != null) {
+      try {
+        player.chatroom!.sendMessage(player, message);
+      } catch (e) {
+        connection.logger.warning("Error sending message in chatroom: $e");
+        connection.protocol
+            ?.getPacket<SendablePacket<MessagePacketData>>(PacketIds.message)
+            ?.send(
+              connection,
+              MessagePacketData(
+                playerId: 0,
+                message: "&cError sending message",
+              ),
+            );
+      }
+    } else {
+      connection.protocol
+          ?.getPacket<SendablePacket<MessagePacketData>>(PacketIds.message)
+          ?.send(
+            connection,
+            MessagePacketData(playerId: 0, message: "&cNot in a chatroom!"),
+          );
+    }
   }
 }
 

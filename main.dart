@@ -34,7 +34,7 @@ void main() async {
   server.start();
   Logger.root.info("Server started on ${server.host}:${server.port}");
   int caughtInterrupts = 0;
-  ProcessSignal.sigint.watch().listen((signal) {
+  ProcessSignal.sigint.watch().listen((signal) async {
     caughtInterrupts++;
     if (caughtInterrupts == 2) {
       Logger.root.warning("Force exiting now.");
@@ -43,7 +43,7 @@ void main() async {
     Logger.root.info(
       "Server shutting down...",
     ); // TODO: If commands are implemented, move shutdown to a seperate function
-    server.stop();
+    await server.stop();
     var worlds =
         instanceRegistry
             .tryGetInstance<WorldRegistry>("worldregistry")

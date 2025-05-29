@@ -3,7 +3,7 @@ import 'package:meta/meta.dart';
 
 abstract class Nameable<K> {
   K get name;
-  EventEmitter get emitter;
+  EventEmitter? get emitter;
 }
 
 class NamedRegistry<K, V extends Nameable<K>> {
@@ -18,9 +18,11 @@ class NamedRegistry<K, V extends Nameable<K>> {
       throw ArgumentError('Item with name ${item.name} already exists');
     }
     registry[item.name] = item;
-    listeners[item.name] = item.emitter.on('destroyed', (args) {
-      unregister(item);
-    });
+    if (item.emitter != null) {
+      listeners[item.name] = item.emitter!.on('destroyed', (args) {
+        unregister(item);
+      });
+    }
     emitter.emit('register', item);
   }
 

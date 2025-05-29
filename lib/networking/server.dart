@@ -58,7 +58,7 @@ class Server {
     );
   }
 
-  void stop() async {
+  Future<void> stop() async {
     if (closed) {
       logger.warning("Server is already stopped");
       return;
@@ -66,10 +66,12 @@ class Server {
     closed = true;
     logger.info("Stopping...");
     for (var connection in connections.values) {
-      connection.close("Server is stopping");
+      connection.close("Server is stopping", Duration(milliseconds: 50));
     }
+    await Future.delayed(Duration(milliseconds: 50));
     await socket?.close();
     connections.clear();
     emitter.emit("serverStopped");
+    logger.info("Server stopped");
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:logging/logging.dart';
+import '../chatroom.dart';
 
 import '../config/serverconfig.dart';
 import '../constants.dart';
@@ -53,6 +54,15 @@ Future<InstanceRegistry> getServerInstanceRegistry() async {
   }
   worldRegistry.setDefaultWorld(defaultWorld);
   instanceRegistry.registerInstance("worldregistry", worldRegistry);
+
+  final Chatroom chatroom = Chatroom(name: "default");
+  instanceRegistry.registerInstance("defaultChatroom", chatroom);
+  playerRegistry.emitter.on("register", (Player player) {
+    chatroom.addPlayer(player);
+    player.emitter.on("destroy", (data) {
+      chatroom.removePlayer(player);
+    });
+  });
 
   final Server server = new Server(
     serverConfig.host,

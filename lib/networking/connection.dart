@@ -104,7 +104,7 @@ class Connection {
   }
 
   write(List<int> data, {bool force = false}) {
-    if ((closed && !force) || (force && !socketClosed)) return;
+    if ((closed && !force) || (force && socketClosed)) return;
     socket.add(data);
   }
 
@@ -114,12 +114,12 @@ class Connection {
     this.close("An internal error occurred");
   }
 
-  close([
+  Future<void>? close([
     String? reason = null,
-    Duration receiveReasonDelay = const Duration(milliseconds: 100),
+    Duration receiveReasonDelay = const Duration(milliseconds: 50),
   ]) {
     try {
-      if (closed) return;
+      if (closed) return null;
       logger.info('Closing connection $id${reason != null ? ': $reason' : ''}');
       closed = true;
       player?.disconnect("Connection closed");
@@ -137,15 +137,15 @@ class Connection {
           logger.warning("Disconnect packet not found");
         }
         // Give client time to process disconnect
-        Future.delayed(receiveReasonDelay, () {
+        return Future.delayed(receiveReasonDelay, () {
+          emitter.emit("closed");
           if (socketClosed) return;
           socket.destroy();
         });
-        return;
       }
       emitter.emit("closed");
       clearEmitter(emitter);
-      if (socketClosed) return;
+      if (socketClosed) return null;
       socket.destroy();
     } catch (e, stackTrace) {
       print(e);
@@ -154,5 +154,6 @@ class Connection {
         socket.destroy();
       } catch (ignored) {}
     }
+    return null;
   }
 }
