@@ -2,11 +2,8 @@ import 'dart:io';
 
 import 'package:dotenv/dotenv.dart';
 
-import 'lib/registries/worldregistry.dart';
-
 import 'lib/networking/server.dart';
-import 'lib/registries/registryextras.dart';
-import 'lib/registries/instanceregistry.dart';
+import 'lib/context.dart';
 import 'package:logging/logging.dart';
 
 void main() async {
@@ -29,8 +26,8 @@ void main() async {
         "[${record.time.hour.toString().padLeft(2, "0")}:${record.time.minute.toString().padLeft(2, "0")}:${record.time.second.toString().padLeft(2, "0")}] [${record.loggerName.isEmpty ? "Main" : record.loggerName}/${record.level.name}]: ${record.message}";
     print("${colors[record.level] ?? ""}$message${"\x1b[0m"}");
   });
-  InstanceRegistry instanceRegistry = await getServerInstanceRegistry();
-  Server server = instanceRegistry.getInstance<Server>("server");
+  ServerContext context = await ServerContext.defaultContext();
+  Server server = context.server!;
   server.start();
   Logger.root.info("Server started on ${server.host}:${server.port}");
   int caughtInterrupts = 0;
@@ -44,10 +41,7 @@ void main() async {
       "Server shutting down...",
     ); // TODO: If commands are implemented, move shutdown to a seperate function
     await server.stop();
-    var worlds =
-        instanceRegistry
-            .tryGetInstance<WorldRegistry>("worldregistry")
-            ?.getAll();
+    var worlds = context.worldRegistry?.getAll();
     if (worlds != null) {
       for (var world in worlds) {
         world.save();

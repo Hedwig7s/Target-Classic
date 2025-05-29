@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:events_emitter/emitters/event_emitter.dart';
 import 'package:logging/logging.dart';
+import '../context.dart';
 import 'packetdata.dart';
 import '../utility/clearemitter.dart';
 
@@ -9,7 +10,6 @@ import '../constants.dart';
 import '../player.dart';
 import 'packet.dart';
 import 'protocol.dart';
-import '../registries/instanceregistry.dart';
 
 class Connection {
   final int id;
@@ -20,11 +20,11 @@ class Connection {
   bool socketClosed = false;
   bool processingIncoming = false;
   Protocol? protocol;
-  InstanceRegistry? instanceRegistry;
+  ServerContext? context;
   Player? player;
   EventEmitter emitter = EventEmitter();
 
-  Connection(this.id, this.socket, {this.instanceRegistry})
+  Connection(this.id, this.socket, {this.context})
     : logger = Logger("Connection $id") {
     socket.listen(
       (data) {

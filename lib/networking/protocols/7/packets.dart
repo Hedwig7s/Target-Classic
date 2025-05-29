@@ -1,14 +1,12 @@
-import '../../protocol.dart';
+import 'package:target_classic/context.dart';
 
-import '../../../registries/worldregistry.dart';
+import '../../protocol.dart';
 
 import '../../../block.dart';
 import '../../../datatypes.dart';
 import '../../connection.dart';
 import '../../packet.dart';
 import '../../../player.dart';
-import '../../../registries/namedregistry.dart';
-import '../../../registries/instanceregistry.dart';
 import '../../../world.dart';
 import '../../packetdata.dart';
 import 'dart:convert';
@@ -69,13 +67,11 @@ class IdentificationPacket7 extends Packet
       name: decodedData.name,
       fancyName: decodedData.name,
       connection: connection,
-      instanceRegistry: connection.instanceRegistry,
+      context: connection.context,
     );
     connection.player = player;
-    InstanceRegistry? instanceRegistry = connection.instanceRegistry;
-    instanceRegistry
-        ?.tryGetInstance<NamedRegistry>("playerregistry")
-        ?.register(player);
+    ServerContext? context = connection.context;
+    context?.playerRegistry?.register(player);
     connection.logger.info(
       "Connection from ${connection.socket.remoteAddress.address}:${connection.socket.remotePort} identified as ${decodedData.name}",
     );
@@ -86,10 +82,7 @@ class IdentificationPacket7 extends Packet
       connection.close("Error occurred during identification");
       return;
     }
-    World? world =
-        instanceRegistry
-            ?.tryGetInstance<WorldRegistry>("worldregistry")
-            ?.defaultWorld;
+    World? world = context?.worldRegistry?.defaultWorld;
     if (world != null) {
       await player.loadWorld(world);
       player.spawn();

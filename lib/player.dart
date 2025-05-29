@@ -1,6 +1,8 @@
 import 'package:characters/characters.dart';
 import 'package:events_emitter/events_emitter.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart';
+import 'package:target_classic/context.dart';
 import 'chatroom.dart';
 import 'config/serverconfig.dart';
 
@@ -13,7 +15,6 @@ import 'networking/protocol.dart';
 import 'networking/packetdata.dart';
 import 'playerentity.dart';
 import 'registries/namedregistry.dart';
-import 'registries/instanceregistry.dart';
 import 'utility/clearemitter.dart';
 import 'world.dart';
 
@@ -37,7 +38,7 @@ class Player implements Nameable<String> {
   final String name;
   String fancyName;
   Connection? connection;
-  InstanceRegistry? instanceRegistry;
+  ServerContext? context;
   PlayerEntity? entity;
   Chatroom? chatroom;
   World? world;
@@ -49,7 +50,7 @@ class Player implements Nameable<String> {
   Player({
     required this.name,
     required this.fancyName,
-    this.instanceRegistry,
+    this.context,
     this.connection,
   }) : assert(name.isNotEmpty, "Name must not be empty"),
        logger = Logger("Player $name") {
@@ -70,9 +71,7 @@ class Player implements Nameable<String> {
           PacketIds.identification,
         );
     String serverName = "Name not set", motd = "Motd not set";
-    ServerConfig? config = instanceRegistry?.tryGetInstance<ServerConfig>(
-      "serverconfig",
-    );
+    ServerConfig? config = context?.serverConfig;
     if (config != null) {
       serverName = config.serverName;
       motd = config.motd;
@@ -163,9 +162,7 @@ class Player implements Nameable<String> {
 
         entity.spawnFor(connection!);
 
-        var serverConfig = instanceRegistry?.tryGetInstance<ServerConfig>(
-          "serverconfig",
-        );
+        var serverConfig = context?.serverConfig;
         bool useRelativeMovements = serverConfig?.useRelativeMovements ?? false;
 
         var setPositionPacket = connection!.protocol

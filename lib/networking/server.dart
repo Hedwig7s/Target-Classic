@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:events_emitter/events_emitter.dart';
 import 'package:logging/logging.dart';
+import '../context.dart';
 
 import 'connection.dart';
-import '../registries/instanceregistry.dart';
 
 class Server {
   final String host;
@@ -14,10 +14,10 @@ class Server {
   final Logger logger = Logger("Server");
   int connectionsEver = 0;
   ServerSocket? socket;
-  InstanceRegistry? instanceRegistry;
+  ServerContext? context;
   bool closed = false;
 
-  Server(this.host, this.port, {this.instanceRegistry}) {
+  Server(this.host, this.port, {this.context}) {
     if (host.isEmpty) {
       throw ArgumentError('Host cannot be empty');
     }
@@ -38,11 +38,7 @@ class Server {
           'Connection from ${socket.remoteAddress.address}:${socket.remotePort}',
         );
         int id = connectionsEver++;
-        Connection connection = Connection(
-          id,
-          socket,
-          instanceRegistry: instanceRegistry,
-        );
+        Connection connection = Connection(id, socket, context: context);
         connections[id] = connection;
         emitter.emit("connectionOpened", connection);
         connection.emitter.on("closed", (data) {
