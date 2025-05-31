@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:path/path.dart' as p;
 import 'package:toml/toml.dart';
-import '../constants.dart';
+import 'package:target_classic/constants.dart';
 
 part 'serverconfig.freezed.dart';
 part 'serverconfig.g.dart';

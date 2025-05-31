@@ -1,22 +1,21 @@
 import 'package:characters/characters.dart';
 import 'package:events_emitter/events_emitter.dart';
 import 'package:logging/logging.dart';
-import 'package:path/path.dart';
 import 'package:target_classic/context.dart';
-import 'chatroom.dart';
-import 'config/serverconfig.dart';
+import 'package:target_classic/chatroom.dart';
+import 'package:target_classic/config/serverconfig.dart';
 
-import 'block.dart';
-import 'datatypes.dart';
-import 'entity.dart';
-import 'networking/connection.dart';
-import 'networking/packet.dart';
-import 'networking/protocol.dart';
-import 'networking/packetdata.dart';
-import 'playerentity.dart';
-import 'registries/namedregistry.dart';
-import 'utility/clearemitter.dart';
-import 'world.dart';
+import 'package:target_classic/block.dart';
+import 'package:target_classic/datatypes.dart';
+import 'package:target_classic/entity.dart';
+import 'package:target_classic/networking/connection.dart';
+import 'package:target_classic/networking/packet.dart';
+import 'package:target_classic/networking/protocol.dart';
+import 'package:target_classic/networking/packetdata.dart';
+import 'package:target_classic/playerentity.dart';
+import 'package:target_classic/registries/namedregistry.dart';
+import 'package:target_classic/utility/clearemitter.dart';
+import 'package:target_classic/world.dart';
 
 class PlayerListenedWorldEvents {
   EventListener? entityAdded;

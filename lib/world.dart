@@ -3,13 +3,13 @@ import 'dart:typed_data';
 
 import 'package:events_emitter/events_emitter.dart';
 import 'package:logging/logging.dart';
-import 'block.dart';
-import 'datatypes.dart';
-import 'entity.dart';
-import 'networking/packetdata.dart';
-import 'registries/namedregistry.dart';
-import 'worldformats/hworld.dart';
-import 'worldformats/worldformat.dart';
+import 'package:target_classic/block.dart';
+import 'package:target_classic/datatypes.dart';
+import 'package:target_classic/entity.dart';
+import 'package:target_classic/networking/packetdata.dart';
+import 'package:target_classic/registries/namedregistry.dart';
+import 'package:target_classic/worldformats/hworld.dart';
+import 'package:target_classic/worldformats/worldformat.dart';
 
 final WORLD_FORMATS = <WorldFormat>[HWorldFormat()];
 

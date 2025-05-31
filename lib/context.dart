@@ -1,19 +1,19 @@
 import 'dart:io';
 
 import 'package:logging/logging.dart';
-import 'chatroom.dart';
+import 'package:target_classic/chatroom.dart';
 
-import 'config/serverconfig.dart';
-import 'constants.dart';
+import 'package:target_classic/config/serverconfig.dart';
+import 'package:target_classic/constants.dart';
 import 'package:path/path.dart' as p;
 
-import 'datatypes.dart';
-import 'networking/server.dart';
-import 'player.dart';
-import 'world.dart';
-import 'worldformats/hworld.dart';
-import 'registries/namedregistry.dart';
-import 'registries/worldregistry.dart';
+import 'package:target_classic/datatypes.dart';
+import 'package:target_classic/networking/server.dart';
+import 'package:target_classic/player.dart';
+import 'package:target_classic/world.dart';
+import 'package:target_classic/worldformats/hworld.dart';
+import 'package:target_classic/registries/namedregistry.dart';
+import 'package:target_classic/registries/worldregistry.dart';
 
 typedef PlayerRegistry = NamedRegistry<String, Player>;
 

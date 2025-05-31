@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:dotenv/dotenv.dart';
 
-import 'lib/networking/server.dart';
-import 'lib/context.dart';
+import 'package:target_classic/networking/server.dart';
+import 'package:target_classic/context.dart';
 import 'package:logging/logging.dart';
 
 void main() async {

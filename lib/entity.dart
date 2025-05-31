@@ -1,11 +1,11 @@
 import 'package:events_emitter/events_emitter.dart';
 import 'package:logging/logging.dart';
 
-import 'datatypes.dart';
-import 'networking/connection.dart';
-import 'registries/incrementalregistry.dart';
-import 'utility/clearemitter.dart';
-import 'world.dart';
+import 'package:target_classic/datatypes.dart';
+import 'package:target_classic/networking/connection.dart';
+import 'package:target_classic/registries/incrementalregistry.dart';
+import 'package:target_classic/utility/clearemitter.dart';
+import 'package:target_classic/world.dart';
 
 abstract class Entity implements IRRegisterable {
   EntityPosition _position = EntityPosition(0, 0, 0, 0, 0);

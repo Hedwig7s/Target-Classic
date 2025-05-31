@@ -1,8 +1,8 @@
 import 'package:events_emitter/events_emitter.dart';
 import 'package:logging/logging.dart';
-import 'registries/namedregistry.dart';
+import 'package:target_classic/registries/namedregistry.dart';
 
-import 'player.dart';
+import 'package:target_classic/player.dart';
 
 class Chatroom implements Nameable<String> {
   final Set<Player> players = {};

@@ -1,17 +1,17 @@
 import 'package:target_classic/context.dart';
 
-import '../../protocol.dart';
+import 'package:target_classic/networking/protocol.dart';
 
-import '../../../block.dart';
-import '../../../datatypes.dart';
-import '../../connection.dart';
-import '../../packet.dart';
-import '../../../player.dart';
-import '../../../world.dart';
-import '../../packetdata.dart';
+import 'package:target_classic/block.dart';
+import 'package:target_classic/datatypes.dart';
+import 'package:target_classic/networking/connection.dart';
+import 'package:target_classic/networking/packet.dart';
+import 'package:target_classic/player.dart';
+import 'package:target_classic/world.dart';
+import 'package:target_classic/networking/packetdata.dart';
 import 'dart:convert';
-import '../../../dataparser/builder.dart';
-import '../../../dataparser/parser.dart';
+import 'package:target_classic/dataparser/builder.dart';
+import 'package:target_classic/dataparser/parser.dart';
 
 class IdentificationPacket7 extends Packet
     with

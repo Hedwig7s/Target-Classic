@@ -1,11 +1,11 @@
-import 'datatypes.dart';
-import 'entity.dart';
-import 'networking/connection.dart';
-import 'networking/packet.dart';
-import 'networking/protocol.dart';
-import 'networking/packetdata.dart';
-import 'player.dart';
-import 'world.dart';
+import 'package:target_classic/datatypes.dart';
+import 'package:target_classic/entity.dart';
+import 'package:target_classic/networking/connection.dart';
+import 'package:target_classic/networking/packet.dart';
+import 'package:target_classic/networking/protocol.dart';
+import 'package:target_classic/networking/packetdata.dart';
+import 'package:target_classic/player.dart';
+import 'package:target_classic/world.dart';
 
 class PlayerEntity extends Entity {
   Player player;

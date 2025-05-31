@@ -1,5 +1,5 @@
-import '../../packet.dart';
-import '../../protocol.dart';
+import 'package:target_classic/networking/packet.dart';
+import 'package:target_classic/networking/protocol.dart';
 import 'packets.dart';
 
 class Protocol7 extends Protocol {

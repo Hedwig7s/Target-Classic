@@ -2,14 +2,14 @@ import 'dart:io';
 
 import 'package:events_emitter/emitters/event_emitter.dart';
 import 'package:logging/logging.dart';
-import '../context.dart';
-import 'packetdata.dart';
-import '../utility/clearemitter.dart';
+import 'package:target_classic/context.dart';
+import 'package:target_classic/networking/packetdata.dart';
+import 'package:target_classic/utility/clearemitter.dart';
 
-import '../constants.dart';
-import '../player.dart';
-import 'packet.dart';
-import 'protocol.dart';
+import 'package:target_classic/constants.dart';
+import 'package:target_classic/player.dart';
+import 'package:target_classic/networking/packet.dart';
+import 'package:target_classic/networking/protocol.dart';
 
 class Connection {
   final int id;

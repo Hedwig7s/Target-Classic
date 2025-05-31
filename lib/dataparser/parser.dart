@@ -1,4 +1,4 @@
-import 'builderentries.dart';
+import 'package:target_classic/dataparser/builderentries.dart';
 import 'dart:typed_data';
 import 'package:buffer/buffer.dart';
 

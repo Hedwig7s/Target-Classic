@@ -1,5 +1,5 @@
-import 'builderentries.dart';
-import 'parser.dart';
+import 'package:target_classic/dataparser/builderentries.dart';
+import 'package:target_classic/dataparser/parser.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 
