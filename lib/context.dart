@@ -8,6 +8,7 @@ import 'package:target_classic/constants.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:target_classic/datatypes.dart';
+import 'package:target_classic/networking/heartbeat.dart';
 import 'package:target_classic/networking/server.dart';
 import 'package:target_classic/player.dart';
 import 'package:target_classic/world.dart';
@@ -23,6 +24,8 @@ class ServerContext {
   WorldRegistry? worldRegistry;
   Chatroom? defaultChatroom;
   Server? server;
+  String? salt;
+  Heartbeat? heartbeat;
   static Future<ServerContext> defaultContext() async {
     ServerContext context = ServerContext();
     try {
@@ -33,7 +36,16 @@ class ServerContext {
     }
     context.serverConfig!.saveToFile();
 
+    context.salt = generateSalt();
+
     context.playerRegistry = PlayerRegistry();
+
+    context.heartbeat = Heartbeat(
+      heartbeatUrl: context.serverConfig!.heartbeatUrl,
+      serverConfig: context.serverConfig!,
+      salt: context.salt!,
+      playerRegistry: context.playerRegistry!,
+    );
 
     context.worldRegistry = WorldRegistry();
     late final World defaultWorld;

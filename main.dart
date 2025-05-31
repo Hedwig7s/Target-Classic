@@ -30,6 +30,7 @@ void main() async {
   Server server = context.server!;
   server.start();
   Logger.root.info("Server started on ${server.host}:${server.port}");
+  context.heartbeat?.start();
   int caughtInterrupts = 0;
   ProcessSignal.sigint.watch().listen((signal) async {
     caughtInterrupts++;
