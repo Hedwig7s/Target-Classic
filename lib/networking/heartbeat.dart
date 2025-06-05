@@ -48,7 +48,7 @@ Future<String> readOrGenerateSalt({
 }) async {
   if (await File(cachePath).exists()) {
     try {
-      return readSalt(cachePath);
+      return await readSalt(cachePath);
     } catch (e, stackTrace) {
       Logger.root.warning(
         "Failed to read cached salt, generating new one",
