@@ -31,6 +31,8 @@ void main() async {
   server.start();
   Logger.root.info("Server started on ${server.host}:${server.port}");
   context.heartbeat?.start();
+  print(context.heartbeat?.salt);
+  context.heartbeat?.startSaltSaver();
   int caughtInterrupts = 0;
   ProcessSignal.sigint.watch().listen((signal) async {
     caughtInterrupts++;

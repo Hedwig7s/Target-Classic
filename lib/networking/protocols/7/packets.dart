@@ -1,3 +1,5 @@
+import 'package:crypto/crypto.dart';
+import 'package:target_classic/config/serverconfig.dart';
 import 'package:target_classic/context.dart';
 
 import 'package:target_classic/networking/protocol.dart';
@@ -54,6 +56,8 @@ class IdentificationPacket7 extends Packet
 
   @override
   Future<void> receive(Connection connection, List<int> data) async {
+    ServerContext? context = connection.context;
+    ServerConfig? serverConfig = context?.serverConfig;
     IdentificationPacketData decodedData = decode(data);
     if (decodedData.name
         .replaceAllMapped(RegExp('[\x00-\x1F\x7F-\xFF]'), (match) => '')
@@ -62,7 +66,44 @@ class IdentificationPacket7 extends Packet
       connection.close("Invalid player name");
       return;
     }
-    // TODO: Name verification
+    if ((serverConfig?.verifyNames ?? false) &&
+        context?.salt != null &&
+        (md5.convert(
+              ascii.encode(context!.salt! + decodedData.name),
+            )).toString() !=
+            decodedData.keyOrMotd.toLowerCase()) {
+      connection.logger.warning("Invalid mppass");
+      connection.close("Invalid mppass");
+      return;
+    }
+    PlayerRegistry? playerRegistry = context?.playerRegistry;
+    if (playerRegistry == null) {
+      connection.logger.warning("No player registry found!");
+    }
+    if (playerRegistry?.toMap().containsKey(decodedData.name) ?? false) {
+      connection.logger.warning(
+        "Player name already taken: ${decodedData.name}",
+      );
+      connection.close("Player name already taken");
+      return;
+    }
+
+    if (serverConfig == null) {
+      connection.logger.warning(
+        "No config found during identification. May result in unintended behaviour",
+      );
+    }
+
+    if (context?.serverConfig?.maxPlayers != null &&
+        playerRegistry != null &&
+        playerRegistry.length >= context!.serverConfig!.maxPlayers) {
+      connection.logger.warning(
+        "Server is full, cannot identify player ${decodedData.name}",
+      );
+      connection.close("Server is full");
+      return;
+    }
+
     Player player = Player(
       name: decodedData.name,
       fancyName: decodedData.name,
@@ -70,8 +111,7 @@ class IdentificationPacket7 extends Packet
       context: connection.context,
     );
     connection.player = player;
-    ServerContext? context = connection.context;
-    context?.playerRegistry?.register(player);
+    playerRegistry?.register(player);
     connection.logger.info(
       "Connection from ${connection.socket.remoteAddress.address}:${connection.socket.remotePort} identified as ${decodedData.name}",
     );

@@ -223,7 +223,7 @@ class World implements Nameable<String> {
 
   Future<void> save({String? path, WorldFormat? format}) async {
     String? outPath = path ?? filePath;
-    logger.info('Saving to $outPath');
+    logger.fine('Saving to $outPath');
     if (outPath == null) throw ArgumentError("No path provided!");
     format ??= HWorldFormat();
     List<int> encoded = format.serialize(this);
@@ -232,6 +232,6 @@ class World implements Nameable<String> {
       await outFile.create(recursive: true);
     }
     await outFile.writeAsBytes(encoded);
-    logger.info('World saved to $outPath');
+    logger.fine('World saved to $outPath');
   }
 }

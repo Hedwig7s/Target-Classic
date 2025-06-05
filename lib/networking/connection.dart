@@ -105,7 +105,11 @@ class Connection {
 
   write(List<int> data, {bool force = false}) {
     if ((closed && !force) || (force && socketClosed)) return;
-    socket.add(data);
+    try {
+      socket.add(data);
+    } catch (e, stackTrace) {
+      logger.severe("Failed to write into socket", e, stackTrace);
+    }
   }
 
   onError(error) {

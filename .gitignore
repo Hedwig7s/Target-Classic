@@ -7,3 +7,4 @@
 *.g.dart
 *.freezed.dart
 .env
+cachedsalt.txt

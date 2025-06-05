@@ -15,6 +15,10 @@ class IncrementalRegistry<V extends IRRegisterable> {
   @protected
   int totalRegisteredP = 0;
 
+  int get length {
+    return registry.length;
+  }
+
   int get totalRegistered => totalRegisteredP;
 
   void register(V item) {

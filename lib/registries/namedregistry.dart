@@ -12,6 +12,9 @@ class NamedRegistry<K, V extends Nameable<K>> {
   final EventEmitter emitter = EventEmitter();
   @protected
   final Map<K, EventListener> listeners = {};
+  int get length {
+    return registry.length;
+  }
 
   void register(V item) {
     if (registry.containsKey(item.name) && registry[item.name] != item) {
@@ -56,5 +59,9 @@ class NamedRegistry<K, V extends Nameable<K>> {
 
   List<V> getAll() {
     return registry.values.toList();
+  }
+
+  Map<K, V> toMap() {
+    return Map<K, V>.from(registry);
   }
 }

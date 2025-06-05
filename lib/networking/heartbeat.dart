@@ -8,10 +8,56 @@ import 'package:target_classic/config/serverconfig.dart';
 import 'package:target_classic/constants.dart';
 import 'package:target_classic/context.dart';
 
+const String cachePath = "cachedsalt.txt";
+
+void cacheSalt(String salt, [String path = cachePath]) async {
+  if (salt.contains("\n")) {
+    throw Exception(
+      "Salt may not contain newline", // Newline seperates the salt and timestamp
+    );
+  }
+  var out = File(path);
+  await out.writeAsString("$salt\n${DateTime.now().toUtc().toIso8601String()}");
+}
+
+Future<String> readSalt([String path = cachePath]) async {
+  List<String> data = await File(path).readAsLines();
+  if (data.length > 2) throw Exception("Invalid salt file");
+  String salt = data[0];
+  String timestamp = data[1];
+  if (DateTime.now().toUtc().difference(DateTime.parse(timestamp)).inMinutes >
+      5)
+    throw Exception("Salt expired");
+  return salt;
+}
+
 String generateSalt([int length = 32]) {
   final random = Random.secure();
-  final bytes = List<int>.generate(length, (_) => random.nextInt(256));
-  return base64Url.encode(bytes);
+  final bytes = List<int>.generate(
+    length,
+    (_) =>
+        random.nextInt(127 - 33) +
+        33, // ASCII range 33-126 (printable characters)
+  );
+  return ascii.decode(bytes);
+}
+
+Future<String> readOrGenerateSalt({
+  int length = 32,
+  String path = cachePath,
+}) async {
+  if (await File(cachePath).exists()) {
+    try {
+      return readSalt(cachePath);
+    } catch (e, stackTrace) {
+      Logger.root.warning(
+        "Failed to read cached salt, generating new one",
+        e,
+        stackTrace,
+      );
+    }
+  }
+  return generateSalt();
 }
 
 class HeartbeatInfo {
@@ -34,7 +80,7 @@ class HeartbeatInfo {
        assert(salt.length <= 256, 'Salt must be 256 characters or less');
 
   String toParams() {
-    return 'name=$name&salt=$salt&port=$port&users=$users&max=$max&public=$public&software=$software';
+    return 'name=$name&salt=${Uri.encodeFull(salt)}&port=$port&users=$users&max=$max&public=$public&software=$software';
   }
 }
 
@@ -48,6 +94,12 @@ class Heartbeat {
   Timer? _timer;
   ServerConfig serverConfig;
   PlayerRegistry playerRegistry;
+  Timer? saltSaver;
+  startSaltSaver([String path = cachePath]) {
+    saltSaver = Timer(Duration(minutes: 1), () {
+      cacheSalt(salt, path);
+    });
+  }
 
   Heartbeat({
     this.heartbeatUrl = "https://www.classicube.net/server/heartbeat",
@@ -101,7 +153,7 @@ class Heartbeat {
         name: serverConfig.serverName,
         salt: salt,
         port: serverConfig.port,
-        users: playerRegistry.getAll().length,
+        users: playerRegistry.length,
         max: serverConfig.maxPlayers,
         public: serverConfig.public,
         software: "$SOFTWARE_NAME $SOFTWARE_VERSION",

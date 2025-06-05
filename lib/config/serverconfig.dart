@@ -20,7 +20,8 @@ abstract class ServerConfig with _$ServerConfig {
     @Default("Target-Classic") final String serverName,
     @Default("A classic server in dart") final String motd,
     @Default(false) final bool public,
-    @Default(16) final int maxPlayers,
+    @Default(true) final bool verifyNames,
+    @Default(32) final int maxPlayers,
     @Default(false) final bool useRelativeMovements,
     @Default("https://www.classicube.net/server/heartbeat")
     final String heartbeatUrl,

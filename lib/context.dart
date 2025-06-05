@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
@@ -26,6 +27,7 @@ class ServerContext {
   Server? server;
   String? salt;
   Heartbeat? heartbeat;
+
   static Future<ServerContext> defaultContext() async {
     ServerContext context = ServerContext();
     try {
@@ -36,7 +38,7 @@ class ServerContext {
     }
     context.serverConfig!.saveToFile();
 
-    context.salt = generateSalt();
+    context.salt = await readOrGenerateSalt();
 
     context.playerRegistry = PlayerRegistry();
 
