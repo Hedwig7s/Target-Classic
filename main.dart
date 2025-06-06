@@ -4,6 +4,7 @@ import 'package:dotenv/dotenv.dart';
 
 import 'package:target_classic/networking/server.dart';
 import 'package:target_classic/context.dart';
+import 'package:target_classic/networking/heartbeat.dart';
 import 'package:logging/logging.dart';
 
 void main() async {
@@ -31,8 +32,7 @@ void main() async {
   server.start();
   Logger.root.info("Server started on ${server.host}:${server.port}");
   context.heartbeat?.start();
-  print(context.heartbeat?.salt);
-  context.heartbeat?.startSaltSaver();
+  context.heartbeat?.saltManager.startSaltSaver();
   int caughtInterrupts = 0;
   ProcessSignal.sigint.watch().listen((signal) async {
     caughtInterrupts++;
@@ -50,6 +50,11 @@ void main() async {
         world.save();
       }
     }
+    if (context.heartbeat?.saltManager != null) {
+      context.heartbeat!.saltManager.stopSaltSaver();
+      await context.heartbeat!.saltManager.cacheSalt();
+    }
+    context.heartbeat?.stop();
     Logger.root.info("Server shutdown complete.");
     exit(0);
   });

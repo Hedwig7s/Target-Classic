@@ -25,7 +25,7 @@ class ServerContext {
   WorldRegistry? worldRegistry;
   Chatroom? defaultChatroom;
   Server? server;
-  String? salt;
+  SaltManager? saltManager;
   Heartbeat? heartbeat;
 
   static Future<ServerContext> defaultContext() async {
@@ -38,14 +38,14 @@ class ServerContext {
     }
     context.serverConfig!.saveToFile();
 
-    context.salt = await readOrGenerateSalt();
+    context.saltManager = await SaltManager.tryFromFile();
 
     context.playerRegistry = PlayerRegistry();
 
     context.heartbeat = Heartbeat(
       heartbeatUrl: context.serverConfig!.heartbeatUrl,
       serverConfig: context.serverConfig!,
-      salt: context.salt!,
+      salt: context.saltManager!.salt,
       playerRegistry: context.playerRegistry!,
     );
 

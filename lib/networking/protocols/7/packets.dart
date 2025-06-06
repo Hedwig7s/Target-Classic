@@ -67,11 +67,11 @@ class IdentificationPacket7 extends Packet
       return;
     }
     if ((serverConfig?.verifyNames ?? false) &&
-        context?.salt != null &&
-        (md5.convert(
-              ascii.encode(context!.salt! + decodedData.name),
-            )).toString() !=
-            decodedData.keyOrMotd.toLowerCase()) {
+        context?.saltManager != null &&
+        !context!.saltManager!.verifyName(
+          decodedData.name,
+          decodedData.keyOrMotd,
+        )) {
       connection.logger.warning("Invalid mppass");
       connection.close("Invalid mppass");
       return;
