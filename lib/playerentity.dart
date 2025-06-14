@@ -22,6 +22,9 @@ class PlayerEntity extends Entity {
 
   @override
   move(EntityPosition newPosition, {byPlayer = false}) {
+    if (byPlayer && newPosition == position) {
+      return;
+    }
     super.move(newPosition);
     if (!byPlayer) {
       var packet = this.player.connection!.protocol!

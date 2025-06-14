@@ -7,14 +7,14 @@ import 'namedregistry.dart';
 
 class WorldRegistry extends NamedRegistry<String, World> {
   @protected
-  World? defaultWorldP;
-  World? get defaultWorld => defaultWorldP;
+  World? _defaultWorld;
+  World? get defaultWorld => _defaultWorld;
   setDefaultWorld(World? item) {
     World? registeredWorld = registry[item?.name];
     if (registeredWorld != item && item != null) {
       register(item); // Duplicate will be detected here
     }
-    defaultWorldP = item;
+    _defaultWorld = item;
     emitter.emit('setDefaultWorld', item);
   }
 

@@ -13,19 +13,19 @@ class IncrementalRegistry<V extends IRRegisterable> {
   @protected
   final Map<V, EventListener> listeners = {};
   @protected
-  int totalRegisteredP = 0;
+  int _totalRegistered = 0;
 
   int get length {
     return registry.length;
   }
 
-  int get totalRegistered => totalRegisteredP;
+  int get totalRegistered => _totalRegistered;
 
   void register(V item) {
     if (item.ids.containsKey(this)) {
       throw Exception("Item already registered in this registry");
     }
-    int id = totalRegisteredP++;
+    int id = _totalRegistered++;
     item.ids[this] = id;
     registry[id] = item;
     listeners[item] = item.emitter.on('destroyed', (args) {

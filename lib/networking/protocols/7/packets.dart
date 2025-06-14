@@ -1,4 +1,3 @@
-import 'package:crypto/crypto.dart';
 import 'package:target_classic/config/serverconfig.dart';
 import 'package:target_classic/context.dart';
 
@@ -285,17 +284,16 @@ class SetBlockClientPacket7 extends Packet
       connection.logger.warning("Invalid block ID: ${decodedData.blockId}");
       return;
     }
-    World world = connection.player!.world!;
     Vector3I blockPos = Vector3I(
       decodedData.position.x,
       decodedData.position.y,
       decodedData.position.z,
     );
-    if (decodedData.mode == 0) {
-      world.setBlock(blockPos, BlockID.air);
-    } else {
-      world.setBlock(blockPos, BlockID.values[decodedData.blockId]);
-    }
+
+    connection.player!.setBlock(
+      blockPos,
+      decodedData.mode == 0 ? BlockID.air : BlockID.values[decodedData.blockId],
+    );
   }
 }
 
@@ -592,7 +590,7 @@ class MessagePacket7 extends Packet
     if (message.isEmpty) return;
     if (player.chatroom != null) {
       try {
-        player.chatroom!.sendMessage(player, message);
+        player.chat(message);
       } catch (e) {
         connection.logger.warning("Error sending message in chatroom: $e");
         connection.protocol

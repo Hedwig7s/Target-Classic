@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:events_emitter/emitters/event_emitter.dart';
 import 'package:logging/logging.dart';
 import 'package:target_classic/context.dart';
+import 'package:target_classic/cooldown.dart';
 import 'package:target_classic/networking/packetdata.dart';
 import 'package:target_classic/utility/clearemitter.dart';
 
@@ -10,6 +12,33 @@ import 'package:target_classic/constants.dart';
 import 'package:target_classic/player.dart';
 import 'package:target_classic/networking/packet.dart';
 import 'package:target_classic/networking/protocol.dart';
+
+class DataCooldown {
+  int _dataReceived = 0;
+  int get dataReceived => _dataReceived;
+  DateTime _lastReset = DateTime.fromMicrosecondsSinceEpoch(0);
+  DateTime get lastReset => _lastReset;
+  final Duration resetTime;
+  final int maxData;
+
+  DataCooldown({
+    this.maxData = 10000,
+    this.resetTime = const Duration(seconds: 5),
+  });
+
+  bool canUse(int dataSize) {
+    if (_lastReset.add(resetTime).isBefore(DateTime.now())) {
+      _dataReceived = 0;
+      _lastReset = DateTime.now();
+    }
+    _dataReceived += dataSize;
+    if (_dataReceived < 0) {
+      _dataReceived =
+          0x7FFFFFFFFFFFFFFF; // Reset to max value if overflow occurs (unlikely but you never know)
+    }
+    return _dataReceived <= maxData;
+  }
+}
 
 class Connection {
   final int id;
@@ -23,11 +52,26 @@ class Connection {
   ServerContext? context;
   Player? player;
   EventEmitter emitter = EventEmitter();
+  DataCooldown dataCooldown = DataCooldown();
+  Cooldown packetCooldown;
+  int packetCount = 0;
 
-  Connection(this.id, this.socket, {this.context})
-    : logger = Logger("Connection $id") {
+  Connection(this.id, this.socket, {this.context, Cooldown? packetCooldown})
+    : logger = Logger("Connection $id"),
+      packetCooldown =
+          packetCooldown ??
+          Cooldown(maxCount: 60, resetTime: const Duration(seconds: 1)) {
     socket.listen(
       (data) {
+        if (closed) {
+          logger.warning('Connection $id is closed, ignoring incoming data');
+          return;
+        }
+        if (!dataCooldown.canUse(data.length)) {
+          logger.warning('Data limit exceeded, closing connection $id');
+          close("Received too much data in a short time");
+          return;
+        }
         buffer.addAll(data);
         processIncoming();
       },
@@ -42,7 +86,6 @@ class Connection {
       },
     );
   }
-
   void processIncoming() async {
     if (processingIncoming) return;
     processingIncoming = true;
@@ -79,6 +122,10 @@ class Connection {
           logger.warning('Invalid packet id: $packetId');
           this.close("Invalid packet: Unknown packet id: $packetId");
           return;
+        }
+        if (!packetCooldown.canUse()) {
+          logger.warning("Too many packets!");
+          this.close("Too many packets!");
         }
         if (buffer.length < packet.length) {
           break; // Not enough data for the packet

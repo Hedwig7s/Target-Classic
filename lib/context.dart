@@ -39,6 +39,7 @@ class ServerContext {
     context.serverConfig!.saveToFile();
 
     context.saltManager = await SaltManager.tryFromFile();
+    context.saltManager?.cacheSalt();
 
     context.playerRegistry = PlayerRegistry();
 

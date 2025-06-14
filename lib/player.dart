@@ -6,6 +6,7 @@ import 'package:target_classic/chatroom.dart';
 import 'package:target_classic/config/serverconfig.dart';
 
 import 'package:target_classic/block.dart';
+import 'package:target_classic/cooldown.dart';
 import 'package:target_classic/datatypes.dart';
 import 'package:target_classic/entity.dart';
 import 'package:target_classic/networking/connection.dart';
@@ -33,6 +34,17 @@ class PlayerListenedWorldEvents {
   }
 }
 
+class PlayerCooldowns {
+  final Cooldown setBlock;
+  final Cooldown move;
+  PlayerCooldowns({Cooldown? setBlock, Cooldown? move, Cooldown? chat})
+    : setBlock =
+          setBlock ??
+          Cooldown(maxCount: 20, resetTime: const Duration(seconds: 1)),
+      move =
+          move ?? Cooldown(maxCount: 30, resetTime: const Duration(seconds: 1));
+}
+
 class Player implements Nameable<String> {
   final String name;
   String fancyName;
@@ -45,14 +57,17 @@ class Player implements Nameable<String> {
   final EventEmitter emitter = EventEmitter();
   final PlayerListenedWorldEvents worldEvents = PlayerListenedWorldEvents();
   final Logger logger;
+  final PlayerCooldowns cooldowns;
 
   Player({
     required this.name,
     required this.fancyName,
     this.context,
     this.connection,
+    PlayerCooldowns? cooldowns,
   }) : assert(name.isNotEmpty, "Name must not be empty"),
-       logger = Logger("Player $name") {
+       logger = Logger("Player $name"),
+       cooldowns = cooldowns ?? PlayerCooldowns() {
     this.entity = PlayerEntity(name: name, fancyName: fancyName, player: this);
     this.connection?.emitter.on("closed", (data) {
       this.destroy();
@@ -312,6 +327,25 @@ class Player implements Nameable<String> {
     emitter.emit("worldLoaded", world);
   }
 
+  void setBlock(Vector3I blockPos, BlockID blockId) {
+    if (world == null) return;
+    if (!cooldowns.setBlock.canUse()) {
+      connection?.protocol
+          ?.getPacket<SendablePacket<SetBlockServerPacketData>>(
+            PacketIds.setBlockServer,
+          )
+          ?.send(
+            connection!,
+            SetBlockServerPacketData(
+              position: blockPos,
+              blockId: world!.getBlock(blockPos),
+            ),
+          );
+      return;
+    }
+    world?.setBlock(blockPos, blockId);
+  }
+
   void disconnect(String reason) {
     if (connection?.closed ?? false) return;
     logger.info("Disconnecting player $name");
@@ -334,6 +368,29 @@ class Player implements Nameable<String> {
     }
     this.destroyed = true;
     this.entity?.destroy(byPlayer: true);
+  }
+
+  void move(EntityPosition newPosition, {bool teleport = true}) {
+    if (this.entity == null) return;
+    if (!teleport && !cooldowns.move.canUse()) {
+      connection?.protocol
+          ?.getPacket<SendablePacket<SetPositionAndOrientationPacketData>>(
+            PacketIds.setPositionAndOrientation,
+          )
+          ?.send(
+            connection!,
+            SetPositionAndOrientationPacketData(
+              playerId: -1,
+              position: entity!.position,
+            ),
+          );
+      return;
+    }
+    this.entity?.move(newPosition, byPlayer: !teleport);
+  }
+
+  void chat(String message) {
+    this.chatroom?.sendMessage(this, message);
   }
 
   void sendMessage(String message, [String overflowPrefix = "> "]) {

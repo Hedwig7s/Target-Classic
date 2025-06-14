@@ -1,10 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dotenv/dotenv.dart';
+import 'package:target_classic/cooldown.dart';
 
 import 'package:target_classic/networking/server.dart';
 import 'package:target_classic/context.dart';
-import 'package:target_classic/networking/heartbeat.dart';
 import 'package:logging/logging.dart';
 
 void main() async {
@@ -21,11 +22,27 @@ void main() async {
     Level.WARNING: "\x1b[33m",
     Level.SEVERE: "\x1b[31m",
   };
+  Map<String, Cooldown> logCooldowns = {};
   Logger.root.onRecord.listen((record) {
+    String recordMessage = record.message;
+    Cooldown? logCooldown = logCooldowns[recordMessage];
+    if (!(logCooldown?.canUse() ?? true))
+      return;
+    else if (logCooldown == null)
+      logCooldowns[recordMessage] = Cooldown(
+        maxCount: 1,
+        resetTime: const Duration(milliseconds: 500),
+      );
     // TODO: Save logs
     String message =
-        "[${record.time.hour.toString().padLeft(2, "0")}:${record.time.minute.toString().padLeft(2, "0")}:${record.time.second.toString().padLeft(2, "0")}] [${record.loggerName.isEmpty ? "Main" : record.loggerName}/${record.level.name}]: ${record.message}";
+        "[${record.time.hour.toString().padLeft(2, "0")}:${record.time.minute.toString().padLeft(2, "0")}:${record.time.second.toString().padLeft(2, "0")}] [${record.loggerName.isEmpty ? "Main" : record.loggerName}/${record.level.name}]: $recordMessage";
     print("${colors[record.level] ?? ""}$message${"\x1b[0m"}");
+  });
+  Timer.periodic(const Duration(seconds: 5), (timer) {
+    logCooldowns.removeWhere(
+      (_, value) =>
+          DateTime.now().difference(value.lastReset) >= Duration(seconds: 1),
+    );
   });
   ServerContext context = await ServerContext.defaultContext();
   Server server = context.server!;
