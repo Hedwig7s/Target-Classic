@@ -1,5 +1,7 @@
+import 'package:target_classic/colorcodes.dart';
 import 'package:target_classic/config/serverconfig.dart';
 import 'package:target_classic/context.dart';
+import 'package:target_classic/message.dart';
 
 import 'package:target_classic/networking/protocol.dart';
 
@@ -590,7 +592,7 @@ class MessagePacket7 extends Packet
     if (message.isEmpty) return;
     if (player.chatroom != null) {
       try {
-        player.chat(message);
+        player.chat(Message(message));
       } catch (e) {
         connection.logger.warning("Error sending message in chatroom: $e");
         connection.protocol
@@ -599,7 +601,7 @@ class MessagePacket7 extends Packet
               connection,
               MessagePacketData(
                 playerId: 0,
-                message: "&cError sending message",
+                message: "${ColorCodes.red}Error sending message",
               ),
             );
       }
@@ -608,7 +610,10 @@ class MessagePacket7 extends Packet
           ?.getPacket<SendablePacket<MessagePacketData>>(PacketIds.message)
           ?.send(
             connection,
-            MessagePacketData(playerId: 0, message: "&cNot in a chatroom!"),
+            MessagePacketData(
+              playerId: 0,
+              message: "${ColorCodes.red}Not in a chatroom!",
+            ),
           );
     }
   }

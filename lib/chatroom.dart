@@ -1,6 +1,8 @@
 import 'package:events_emitter/events_emitter.dart';
 import 'package:logging/logging.dart';
+import 'package:target_classic/colorcodes.dart';
 import 'package:target_classic/cooldown.dart';
+import 'package:target_classic/message.dart';
 import 'package:target_classic/registries/namedregistry.dart';
 
 import 'package:target_classic/player.dart';
@@ -41,22 +43,26 @@ class Chatroom implements Nameable<String> {
 
   void sendMessage(
     Player? sender,
-    String message, {
+    Message message, {
     bool bypassCooldown = false,
   }) {
     if (sender != null && !bypassCooldown && !cooldowns[sender]!.canUse()) {
       logger.warning("${sender.name} is on cooldown!");
-      sender.sendMessage("&cYou're sending messages too fast!");
+      sender.sendMessage(
+        Message("${ColorCodes.red}You're sending messages too fast!"),
+      );
       return;
     }
     logger.info("Message from ${sender?.name ?? "server"}: $message");
     if (!players.contains(sender)) return;
-    if (message.isEmpty) return;
+    if (message.message.isEmpty) return;
     emitter.emit("message", (sender: sender, message: message));
 
     for (var player in players) {
       player.sendMessage(
-        "${sender != null ? "${sender.fancyName}&f: " : ""}$message",
+        Message(
+          "${sender != null ? "${sender.fancyName}${ColorCodes.white}: " : ""}$message",
+        ),
       );
     }
   }

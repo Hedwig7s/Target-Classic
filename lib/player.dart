@@ -1,4 +1,3 @@
-import 'package:characters/characters.dart';
 import 'package:events_emitter/events_emitter.dart';
 import 'package:logging/logging.dart';
 import 'package:target_classic/context.dart';
@@ -9,6 +8,7 @@ import 'package:target_classic/block.dart';
 import 'package:target_classic/cooldown.dart';
 import 'package:target_classic/datatypes.dart';
 import 'package:target_classic/entity.dart';
+import 'package:target_classic/message.dart';
 import 'package:target_classic/networking/connection.dart';
 import 'package:target_classic/networking/packet.dart';
 import 'package:target_classic/networking/protocol.dart';
@@ -389,124 +389,17 @@ class Player implements Nameable<String> {
     this.entity?.move(newPosition, byPlayer: !teleport);
   }
 
-  void chat(String message) {
+  void chat(Message message) {
     this.chatroom?.sendMessage(this, message);
   }
 
-  void sendMessage(String message, [String overflowPrefix = "> "]) {
+  void sendMessage(Message message, [String overflowPrefix = "> "]) {
     if (connection == null || connection!.closed) return;
 
     var chatPacket = connection!.protocol!
         .assertPacket<SendablePacket<MessagePacketData>>(PacketIds.message);
 
-    String sanitizePart(String part) {
-      if (part.isNotEmpty && part[part.length - 1] == '&')
-        part = part.substring(0, part.length - 1);
-
-      return part.replaceAllMapped(
-        RegExp('[\x00-\x1F\x7F-\xFF]'),
-        (match) => '?',
-      );
-    }
-
-    if (message.length < 64) {
-      chatPacket.send(
-        connection!,
-        MessagePacketData(message: sanitizePart(message), playerId: 0),
-      );
-      return;
-    }
-    List<String> parts = [];
-    List<String> currentPart = [];
-    List<String> currentWord = [];
-    int currentLength = 0;
-    String lastColor = "";
-    String startColor = "";
-    bool firstPart = true;
-
-    int getMaxPartLength(bool addPrefix) {
-      return (64 - startColor.length) -
-          (!addPrefix ? 0 : overflowPrefix.length);
-    }
-
-    void addWord() {
-      if (currentWord.isEmpty) return;
-      currentPart.add(currentWord.join(""));
-      currentLength += currentWord.length + (currentPart.length == 1 ? 0 : 1);
-      currentWord.clear();
-    }
-
-    void addPart(bool addPrefix) {
-      if (currentPart.isEmpty) return;
-      String part = currentPart.join(" ");
-      if (part.isNotEmpty) {
-        parts.add(
-          (addPrefix ? overflowPrefix : "") + startColor + sanitizePart(part),
-        );
-      }
-      currentPart.clear();
-      currentLength = 0;
-      firstPart = false;
-      startColor = lastColor;
-    }
-
-    int i = -1;
-    void checkWord(bool addPrefix) {
-      if (currentLength +
-              currentWord.length +
-              (currentPart.length == 0 ? 0 : 1) <=
-          getMaxPartLength(addPrefix)) {
-        addWord();
-      }
-    }
-
-    void trimColor(bool wasColor) {
-      if (wasColor)
-        currentWord = currentWord.sublist(0, currentWord.length - 2);
-    }
-
-    ;
-
-    void handleSplit(String char, bool wasColor) {
-      int maxPartLength = getMaxPartLength(!firstPart);
-      checkWord(!firstPart && char != "\n");
-      if (currentLength + currentWord.length >= maxPartLength ||
-          char == "\n" ||
-          i == message.length - 1) {
-        trimColor(wasColor);
-        addPart(!firstPart && char != "\n");
-        checkWord(!firstPart && char != "\n");
-        if (i == message.length - 1) addPart(!firstPart && char != "\n");
-      }
-      if (currentWord.length >=
-          (maxPartLength = getMaxPartLength(!firstPart))) {
-        trimColor(wasColor);
-        addPart(!firstPart && char != "\n");
-        maxPartLength = getMaxPartLength(!firstPart && char != "\n");
-        currentPart = [currentWord.sublist(0, maxPartLength).join("")];
-        currentLength += maxPartLength;
-        currentWord = currentWord.sublist(maxPartLength);
-        handleSplit(char, wasColor);
-      }
-    }
-
-    for (String char in message.characters) {
-      i++;
-      bool wasColor = false;
-      if (char == "&") {
-        lastColor = "&";
-      } else if (RegExp("[0-9a-fA-F]").hasMatch(char) && lastColor == "&") {
-        lastColor += char;
-        wasColor = true;
-      }
-      if (!const {" ", "\n"}.contains(char)) {
-        currentWord.add(char);
-      }
-      if (char == " " || char == "\n" || i == message.length - 1) {
-        handleSplit(char, wasColor);
-      }
-    }
-    for (String part in parts) {
+    for (String part in message.getParts(overflowPrefix: overflowPrefix)) {
       chatPacket.send(
         connection!,
         MessagePacketData(message: part, playerId: 0),
