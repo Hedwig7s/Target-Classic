@@ -68,7 +68,12 @@ class Player implements Nameable<String> {
   }) : assert(name.isNotEmpty, "Name must not be empty"),
        logger = Logger("Player $name"),
        cooldowns = cooldowns ?? PlayerCooldowns() {
-    this.entity = PlayerEntity(name: name, fancyName: fancyName, player: this);
+    this.entity = PlayerEntity(
+      name: name,
+      fancyName: fancyName,
+      player: this,
+      context: context,
+    );
     this.connection?.emitter.on("closed", (data) {
       this.destroy();
     });

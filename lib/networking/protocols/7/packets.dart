@@ -113,6 +113,8 @@ class IdentificationPacket7 extends Packet
     );
     connection.player = player;
     playerRegistry?.register(player);
+    if (player.entity != null)
+      context?.entityRegistry?.register(player.entity!);
     connection.logger.info(
       "Connection from ${connection.socket.remoteAddress.address}:${connection.socket.remotePort} identified as ${decodedData.name}",
     );

@@ -1,5 +1,6 @@
 import 'package:events_emitter/events_emitter.dart';
 import 'package:logging/logging.dart';
+import 'package:target_classic/context.dart';
 
 import 'package:target_classic/datatypes.dart';
 import 'package:target_classic/networking/connection.dart';
@@ -16,12 +17,15 @@ abstract class Entity implements IRRegisterable {
   final String fancyName;
   final emitter = EventEmitter();
   final Logger logger;
+  final ServerContext? context;
   bool destroyed = false;
   int? worldId;
 
-  Entity({required this.name, fancyName})
+  Entity({required this.name, fancyName, this.context})
     : logger = Logger("Entity $name"),
-      fancyName = fancyName ?? name;
+      fancyName = fancyName ?? name {
+    context?.entityRegistry?.register(this);
+  }
 
   spawn(World world) {
     if (this.world != null) {

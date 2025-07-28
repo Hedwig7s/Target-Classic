@@ -9,19 +9,23 @@ import 'package:target_classic/constants.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:target_classic/datatypes.dart';
+import 'package:target_classic/entity.dart';
 import 'package:target_classic/networking/heartbeat.dart';
 import 'package:target_classic/networking/server.dart';
 import 'package:target_classic/player.dart';
+import 'package:target_classic/registries/incrementalregistry.dart';
 import 'package:target_classic/world.dart';
 import 'package:target_classic/worldformats/hworld.dart';
 import 'package:target_classic/registries/namedregistry.dart';
 import 'package:target_classic/registries/worldregistry.dart';
 
 typedef PlayerRegistry = NamedRegistry<String, Player>;
+typedef EntityRegistry = IncrementalRegistry<Entity>;
 
 class ServerContext {
   ServerConfig? serverConfig;
   PlayerRegistry? playerRegistry;
+  EntityRegistry? entityRegistry;
   WorldRegistry? worldRegistry;
   Chatroom? defaultChatroom;
   Server? server;

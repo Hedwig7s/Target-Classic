@@ -9,7 +9,12 @@ import 'package:target_classic/world.dart';
 
 class PlayerEntity extends Entity {
   Player player;
-  PlayerEntity({required super.name, required this.player, super.fancyName}) {}
+  PlayerEntity({
+    required super.name,
+    required this.player,
+    super.fancyName,
+    super.context,
+  }) {}
 
   @override
   spawn(World world, {calledBack = false}) {
