@@ -69,7 +69,7 @@ class ParameterParser {
         for (var path in subPaths) {
           paths.add(
             "$syntax $path",
-          ); // 0: <example> <example2>, 1: <example> <example2> <example3>
+          ); // 0: <example> <example2>, 1: <example> <example2> [<example3>]
         }
       }
       return paths;
