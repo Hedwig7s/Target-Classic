@@ -90,7 +90,6 @@ class Server {
     await socket?.close();
     connections.clear();
     emitter.emit("serverStopped");
-    logger.info("Server stopped");
     this.cooldowns.clear();
   }
 }

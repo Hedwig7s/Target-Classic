@@ -1,0 +1,78 @@
+import 'dart:ffi';
+
+import 'package:dart_lua_ffi/generated_bindings.dart';
+import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
+import 'package:target_classic/plugins/loaders/lua/utility.dart';
+import 'package:ffi/ffi.dart';
+
+class IncorrectTypeError implements Exception {
+  String message;
+  IncorrectTypeError(this.message);
+}
+
+final HANDLE_SIZE = sizeOf<Int64>();
+
+final Map<int, Object> _handles = {};
+int _nextHandle = 1;
+
+int storeObject(Object obj) {
+  final handle = _nextHandle++;
+  _handles[handle] = obj;
+  return handle;
+}
+
+T retrieveObject<T>(int handle) {
+  Object object = _handles[handle]!;
+  if (object is! T)
+    throw IncorrectTypeError(
+      "Attempted to retrieve object of type $T. Got ${object.runtimeType}",
+    );
+  return object as T;
+}
+
+void removeObject(int handle) {
+  _handles.remove(handle);
+}
+
+int handleGCCallback(Pointer<lua_State> L) {
+  try {
+    using((arena) {
+      Pointer<Int64> ptr =
+          lua
+              .luaL_checkudata(L, 1, "handlecleanup".toLuaPointer(arena))
+              .cast<Int64>();
+      removeObject(ptr.value);
+    });
+    return 0;
+  } catch (e, s) {
+    return dartErrorToLua(L, e, s);
+  }
+}
+
+final MetatableFunction GC_METAMETHOD = ("__gc", handleGCCallback);
+
+void createHandleGCMetatable(Pointer<lua_State> luaState) =>
+    createMetatable(luaState, "handlecleanup", [GC_METAMETHOD]);
+
+(Pointer<Int64> userdata, int handle) createUserData(
+  Pointer<lua_State> luaState,
+  Object object, {
+  int nuvalue = 1,
+  String metatable = "handlecleanup",
+}) {
+  var userdata =
+      lua.lua_newuserdatauv(luaState, HANDLE_SIZE, nuvalue).cast<Int64>();
+  int handle = storeObject(object);
+  userdata.value = handle;
+  var metaname = metatable.toLuaPointer();
+  try {
+    lua.luaL_setmetatable(luaState, metaname);
+  } finally {
+    malloc.free(metaname);
+  }
+
+  return (userdata, handle);
+}
+
+T getObjectFromUserData<T>(Pointer<Int64> userdata) =>
+    retrieveObject<T>(userdata.value);

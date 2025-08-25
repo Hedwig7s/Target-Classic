@@ -14,6 +14,7 @@ import 'package:target_classic/networking/heartbeat.dart';
 import 'package:target_classic/networking/server.dart';
 import 'package:target_classic/player.dart';
 import 'package:target_classic/registries/incrementalregistry.dart';
+import 'package:target_classic/registries/pluginregistry.dart';
 import 'package:target_classic/world.dart';
 import 'package:target_classic/worldformats/hworld.dart';
 import 'package:target_classic/registries/namedregistry.dart';
@@ -31,6 +32,7 @@ class ServerContext {
   Server? server;
   SaltManager? saltManager;
   Heartbeat? heartbeat;
+  PluginRegistry? pluginRegistry;
 
   static Future<ServerContext> defaultContext() async {
     ServerContext context = ServerContext();
@@ -88,6 +90,9 @@ class ServerContext {
       context.serverConfig!.port,
       context: context,
     );
+
+    context.pluginRegistry = PluginRegistry();
+
     return context;
   }
 }

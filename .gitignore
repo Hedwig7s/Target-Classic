@@ -6,5 +6,8 @@
 /config
 *.g.dart
 *.freezed.dart
+*.eval.dart
 .env
 cachedsalt.txt
+/plugins
+/assets

@@ -45,6 +45,7 @@ void main() async {
     );
   });
   ServerContext context = await ServerContext.defaultContext();
+  await context.pluginRegistry!.loadAllInDir("./plugins");
   Server server = context.server!;
   server.start();
   Logger.root.info("Server started on ${server.host}:${server.port}");
@@ -52,6 +53,7 @@ void main() async {
   context.heartbeat?.saltManager.startSaltSaver();
   int caughtInterrupts = 0;
   ProcessSignal.sigint.watch().listen((signal) async {
+    // TODO: Unload plugins
     caughtInterrupts++;
     if (caughtInterrupts == 2) {
       Logger.root.warning("Force exiting now.");
@@ -63,9 +65,11 @@ void main() async {
     await server.stop();
     var worlds = context.worldRegistry?.getAll();
     if (worlds != null) {
+      var futures = <Future>[];
       for (var world in worlds) {
-        world.save();
+        futures.add(world.save());
       }
+      for (var future in futures) await future;
     }
     if (context.heartbeat?.saltManager != null) {
       context.heartbeat!.saltManager.stopSaltSaver();
