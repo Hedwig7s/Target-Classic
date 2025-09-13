@@ -2,54 +2,40 @@ import 'dart:ffi';
 
 import 'package:dart_lua_ffi/generated_bindings.dart';
 import 'package:target_classic/datatypes.dart';
-import 'package:target_classic/plugins/loaders/lua/handles.dart';
+import 'package:target_classic/plugins/loaders/lua/utility/handles.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
-import 'package:target_classic/plugins/loaders/lua/utility.dart';
+import 'package:target_classic/plugins/loaders/lua/utility/luaerrors.dart';
+import 'package:target_classic/plugins/loaders/lua/utility/luastrings.dart';
+import 'package:target_classic/plugins/loaders/lua/wrappers/luareg.dart';
+import 'package:target_classic/plugins/loaders/lua/wrappers/metatable.dart';
 import 'package:ffi/ffi.dart';
 
 int IVector3Index(Pointer<lua_State> luaState) {
-  var metaname = "datatypes.vector3".toLuaPointer();
-  try {
-    final userdata = lua.luaL_checkudata(luaState, 1, metaname).cast<Int64>();
-    final vector3 = getObjectFromUserData<Vector3>(userdata);
-    final sizeT = calloc<Size>();
-    final indexPtr = lua.luaL_checklstring(luaState, 2, sizeT);
-    final int size = sizeT.value;
-    calloc.free(sizeT);
-    final String index = luaStringFromPointer(indexPtr, size);
-    final num value;
-    switch (index) {
-      case "x":
-        {
-          value = vector3.x;
-          break;
-        }
-      case "y":
-        {
-          value = vector3.y;
-          break;
-        }
-      case "z":
-        {
-          value = vector3.z;
-          break;
-        }
-      default:
-        {
-          return luaError(luaState, "Invalid index $index into Vector3");
-        }
+  return using((arena) {
+    try {
+      var metaname = "datatypes.vector3".toLuaPointer(arena);
+      final userdata = lua.luaL_checkudata(luaState, 1, metaname).cast<Int64>();
+      final vector3 = getObjectFromUserData<Vector3>(userdata);
+      final sizeT = arena<Size>();
+      final indexPtr = lua.luaL_checklstring(luaState, 2, sizeT);
+      final int size = sizeT.value;
+      final String index = luaStringFromPointer(indexPtr, size);
+      final num? value = vector3.toMap()[index];
+      if (value == null)
+        return luaError(
+          luaState,
+          "Attempt to index invalid key: ${index}",
+        ); // TODO: Potentially make invalid index handling its own function
+      if (vector3 is Vector3I) {
+        lua.lua_pushinteger(luaState, value.toInt());
+      } else {
+        lua.lua_pushnumber(luaState, value.toDouble());
+      }
+      return 1;
+    } catch (e, s) {
+      return dartErrorToLua(luaState, e, s);
     }
-    if (vector3 is Vector3I) {
-      lua.lua_pushinteger(luaState, value.toInt());
-    } else {
-      lua.lua_pushnumber(luaState, value.toDouble());
-    }
-    return 1;
-  } catch (e, s) {
-    return dartErrorToLua(luaState, e, s);
-  } finally {
-    malloc.free(metaname);
-  }
+  });
 }
 
 void createIVector3Meta(Pointer<lua_State> luaState) => createMetatable(
@@ -88,21 +74,21 @@ int createIVector3F(Pointer<lua_State> luaState) =>
     createIVector3(luaState, true);
 
 void addVector3(Pointer<lua_State> luaState) {
-  using((arena) {
-    final reg = calloc<luaL_Reg>(3);
+  final reg = LuaReg.createFromFunctions([
+    ("newInt", createIVector3I),
+    ("newFloat", createIVector3F),
+  ]);
+  try {
+    createIVector3Meta(luaState);
+    lua.lua_createtable(luaState, 0, 0);
+    lua.luaL_setfuncs(luaState, reg.ptr, 0);
+    var fieldName = "Vector3".toLuaPointer();
     try {
-      createIVector3Meta(luaState);
-      lua.lua_createtable(luaState, 0, 0);
-      reg[0].name = "newInt".toLuaPointer(
-        arena,
-      ); //TODO: Make a function for this
-      reg[0].func = Pointer.fromFunction(createIVector3I, 1);
-      reg[1].name = "newFloat".toLuaPointer(arena);
-      reg[1].func = Pointer.fromFunction(createIVector3F, 1);
-      lua.luaL_setfuncs(luaState, reg, 0);
-      lua.lua_setfield(luaState, -2, "Vector3".toLuaPointer(arena));
+      lua.lua_setfield(luaState, -2, fieldName);
     } finally {
-      calloc.free(reg);
+      malloc.free(fieldName);
     }
-  });
+  } finally {
+    reg.free();
+  }
 }

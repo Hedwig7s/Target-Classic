@@ -11,6 +11,10 @@ class Vector3<T extends num> {
     return 'Vector3(x: $x, y: $y, z: $z)';
   }
 
+  Map<String, T> toMap() {
+    return {"x": x, "y": y, "z": z};
+  }
+
   Vector3<int> toInt() {
     return Vector3<int>(x.toInt(), y.toInt(), z.toInt());
   }

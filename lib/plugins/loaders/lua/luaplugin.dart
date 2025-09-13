@@ -3,10 +3,11 @@ import 'dart:io';
 
 import 'package:dart_lua_ffi/dart_lua_ffi.dart';
 import 'package:dart_lua_ffi/generated_bindings.dart';
+import 'package:dart_lua_ffi/macros.dart';
 import 'package:target_classic/plugins/loaders/lua/api/datatypes/datatypes.dart';
-import 'package:target_classic/plugins/loaders/lua/handles.dart';
+import 'package:target_classic/plugins/loaders/lua/utility/handles.dart';
+import 'package:target_classic/plugins/loaders/lua/utility/luastrings.dart';
 import 'package:target_classic/plugins/loaders/pluginloader.dart';
-import 'package:target_classic/plugins/loaders/lua/utility.dart';
 import 'package:target_classic/plugins/plugin.dart';
 import 'package:path/path.dart' as p;
 import 'package:ffi/ffi.dart';
@@ -52,13 +53,15 @@ class LuaPluginLoader implements PluginLoader {
       luaState = lua.luaL_newstate();
       setupLuaState(luaState!);
       var luaPath = p.absolute(filePath).toLuaPointer(arena);
-      lua.luaL_loadfilex(
-        luaState!,
-        luaPath,
-        nullptr.cast(),
-      ); // TODO: Error handling
-      bool errored =
-          lua.lua_pcallk(luaState!, 0, LUA_MULTRET, 0, 0, nullptr.cast()) != 0;
+      lua.luaL_loadfile(luaState!, luaPath); // TODO: Error handling
+      bool errored = lua.lua_pcall(luaState!, 0, LUA_MULTRET, 0) != 0;
+      if (errored) {
+        final Pointer<Utf8> errorPointer =
+            lua.lua_tostring(luaState!, -1).cast<Utf8>();
+
+        final error = errorPointer.toDartString();
+        throw Exception("Lua error: ${error}");
+      }
     });
   }
 }

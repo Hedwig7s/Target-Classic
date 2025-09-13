@@ -2,7 +2,10 @@ import 'dart:ffi';
 
 import 'package:dart_lua_ffi/generated_bindings.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
-import 'package:target_classic/plugins/loaders/lua/utility.dart';
+import 'package:target_classic/plugins/loaders/lua/utility/luaerrors.dart';
+import 'package:target_classic/plugins/loaders/lua/wrappers/luareg.dart';
+import 'package:target_classic/plugins/loaders/lua/wrappers/metatable.dart';
+import 'package:target_classic/plugins/loaders/lua/utility/luastrings.dart';
 import 'package:ffi/ffi.dart';
 
 class IncorrectTypeError implements Exception {
@@ -49,7 +52,7 @@ int handleGCCallback(Pointer<lua_State> L) {
   }
 }
 
-final MetatableFunction GC_METAMETHOD = ("__gc", handleGCCallback);
+final RegFunction GC_METAMETHOD = ("__gc", handleGCCallback);
 
 void createHandleGCMetatable(Pointer<lua_State> luaState) =>
     createMetatable(luaState, "handlecleanup", [GC_METAMETHOD]);

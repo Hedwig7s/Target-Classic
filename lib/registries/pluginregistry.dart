@@ -38,7 +38,6 @@ class PluginRegistry {
     }
   }
 
-
   Future<void> loadFromFile(String filePath) async {
     filePath = p.absolute(filePath);
     late final PluginLoader loader;

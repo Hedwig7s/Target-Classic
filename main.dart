@@ -28,11 +28,12 @@ void main() async {
     Cooldown? logCooldown = logCooldowns[recordMessage];
     if (!(logCooldown?.canUse() ?? true))
       return;
-    else if (logCooldown == null)
+    else if (logCooldown == null) {
       logCooldowns[recordMessage] = Cooldown(
         maxCount: 1,
         resetTime: const Duration(milliseconds: 500),
       );
+    }
     // TODO: Save logs
     String message =
         "[${record.time.hour.toString().padLeft(2, "0")}:${record.time.minute.toString().padLeft(2, "0")}:${record.time.second.toString().padLeft(2, "0")}] [${record.loggerName.isEmpty ? "Main" : record.loggerName}/${record.level.name}]: $recordMessage";
