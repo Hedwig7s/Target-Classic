@@ -15,18 +15,14 @@ void createMetatable(
 ]) {
   using((arena) {
     var reg = LuaReg.createFromFunctions(functions);
-    try {
-      var metaname = name.toLuaPointer(arena);
-      lua.luaL_newmetatable(luaState, metaname);
+    var metaname = name.toLuaPointer(arena);
+    lua.luaL_newmetatable(luaState, metaname);
 
-      lua.luaL_setfuncs(luaState, reg.ptr, 0);
-      if (setIndexToSelf) {
-        lua.lua_pushvalue(luaState, -1); // copy metatable
-        lua.lua_setfield(luaState, -2, "__index".toLuaPointer(arena));
-      }
-      lua.lua_pop(luaState, 1);
-    } finally {
-      reg.free();
+    lua.luaL_setfuncs(luaState, reg.ptr, 0);
+    if (setIndexToSelf) {
+      lua.lua_pushvalue(luaState, -1); // copy metatable
+      lua.lua_setfield(luaState, -2, "__index".toLuaPointer(arena));
     }
+    lua.lua_pop(luaState, 1);
   });
 }

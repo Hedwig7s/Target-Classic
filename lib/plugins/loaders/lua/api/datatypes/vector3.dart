@@ -78,17 +78,13 @@ void addVector3(Pointer<lua_State> luaState) {
     ("newInt", createIVector3I),
     ("newFloat", createIVector3F),
   ]);
+  createIVector3Meta(luaState);
+  lua.lua_createtable(luaState, 0, 0);
+  lua.luaL_setfuncs(luaState, reg.ptr, 0);
+  var fieldName = "Vector3".toLuaPointer();
   try {
-    createIVector3Meta(luaState);
-    lua.lua_createtable(luaState, 0, 0);
-    lua.luaL_setfuncs(luaState, reg.ptr, 0);
-    var fieldName = "Vector3".toLuaPointer();
-    try {
-      lua.lua_setfield(luaState, -2, fieldName);
-    } finally {
-      malloc.free(fieldName);
-    }
+    lua.lua_setfield(luaState, -2, fieldName);
   } finally {
-    reg.free();
+    malloc.free(fieldName);
   }
 }

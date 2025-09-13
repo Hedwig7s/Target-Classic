@@ -43,12 +43,10 @@ class LuaReg {
     regFinalizer.attach(this, ptr, detach: this);
   }
 
-  void dispose() {
+  void free() {
     if (this._freed) return;
     this._freed = true;
     regFinalizer.detach(this);
     nameFinalizer.detach(this);
   }
-
-  free() => this.dispose();
 }
