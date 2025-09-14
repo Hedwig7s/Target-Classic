@@ -85,6 +85,17 @@ class EntityPosition {
     required this.pitch,
   });
 
+  Map<String, dynamic> toMap() {
+    return {
+      "x": x,
+      "y": y,
+      "z": z,
+      "vector": vector,
+      "yaw": yaw,
+      "pitch": pitch,
+    };
+  }
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;

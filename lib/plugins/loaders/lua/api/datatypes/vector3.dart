@@ -5,6 +5,7 @@ import 'package:target_classic/datatypes.dart';
 import 'package:target_classic/plugins/loaders/lua/api/metatables.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/handles.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
+import 'package:target_classic/plugins/loaders/lua/utility/index.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/luaerrors.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luareg.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luastring.dart';
@@ -22,12 +23,10 @@ int IVector3Index(Pointer<lua_State> luaState) {
       final indexRaw = lua.luaL_checklstring(luaState, 2, sizeT);
       final int size = sizeT.value;
       final String index = LuaString.fromPointer(indexRaw, size).string;
-      final num? value = vector3.toMap()[index];
-      if (value == null)
-        return luaError(
-          luaState,
-          "Attempt to index invalid key: ${index}",
-        ); // TODO: Potentially make invalid index handling its own function
+      final map = vector3.toMap();
+      if (!checkIndex(luaState, map.keys, index)) return -1;
+      final num value = map[index]!;
+
       if (vector3 is Vector3I) {
         lua.lua_pushinteger(luaState, value.toInt());
       } else {
@@ -45,6 +44,7 @@ void createIVector3Meta(Pointer<lua_State> luaState) => createMetatable(
   Metatables.Vector3.name,
   [GC_METAMETHOD, ("__index", IVector3Index)],
 );
+
 
 int createIVector3(Pointer<lua_State> luaState, bool isFloat) {
   try {
