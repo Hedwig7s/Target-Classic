@@ -2,24 +2,26 @@ import 'dart:ffi';
 
 import 'package:dart_lua_ffi/generated_bindings.dart';
 import 'package:target_classic/datatypes.dart';
+import 'package:target_classic/plugins/loaders/lua/api/metatables.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/handles.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/luaerrors.dart';
-import 'package:target_classic/plugins/loaders/lua/utility/luastrings.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luareg.dart';
+import 'package:target_classic/plugins/loaders/lua/wrappers/luastring.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/metatable.dart';
 import 'package:ffi/ffi.dart';
 
 int IVector3Index(Pointer<lua_State> luaState) {
   return using((arena) {
     try {
-      var metaname = "datatypes.vector3".toLuaPointer(arena);
-      final userdata = lua.luaL_checkudata(luaState, 1, metaname).cast<Int64>();
+      var metaname = Metatables.Vector3.name.toLuaString();
+      final userdata =
+          lua.luaL_checkudata(luaState, 1, metaname.ptr).cast<Int64>();
       final vector3 = getObjectFromUserData<Vector3>(userdata);
       final sizeT = arena<Size>();
-      final indexPtr = lua.luaL_checklstring(luaState, 2, sizeT);
+      final indexRaw = lua.luaL_checklstring(luaState, 2, sizeT);
       final int size = sizeT.value;
-      final String index = luaStringFromPointer(indexPtr, size);
+      final String index = LuaString.fromPointer(indexRaw, size).string;
       final num? value = vector3.toMap()[index];
       if (value == null)
         return luaError(
@@ -40,7 +42,7 @@ int IVector3Index(Pointer<lua_State> luaState) {
 
 void createIVector3Meta(Pointer<lua_State> luaState) => createMetatable(
   luaState,
-  "datatypes.vector3",
+  Metatables.Vector3.name,
   [GC_METAMETHOD, ("__index", IVector3Index)],
 );
 
@@ -60,7 +62,7 @@ int createIVector3(Pointer<lua_State> luaState, bool isFloat) {
       }
       vector3 = Vector3I(coords[0], coords[1], coords[2]);
     }
-    createUserData(luaState, vector3, metatable: "datatypes.vector3");
+    createUserData(luaState, vector3, metatable: Metatables.Vector3.name);
     return 1;
   } catch (e, s) {
     return dartErrorToLua(luaState, e, s);
@@ -74,17 +76,13 @@ int createIVector3F(Pointer<lua_State> luaState) =>
     createIVector3(luaState, true);
 
 void addVector3(Pointer<lua_State> luaState) {
-  final reg = LuaReg.createFromFunctions([
+  final reg = LuaReg.fromFunctions([
     ("newInt", createIVector3I),
     ("newFloat", createIVector3F),
   ]);
   createIVector3Meta(luaState);
   lua.lua_createtable(luaState, 0, 0);
   lua.luaL_setfuncs(luaState, reg.ptr, 0);
-  var fieldName = "Vector3".toLuaPointer();
-  try {
-    lua.lua_setfield(luaState, -2, fieldName);
-  } finally {
-    malloc.free(fieldName);
-  }
+  var fieldName = "Vector3".toLuaString();
+  lua.lua_setfield(luaState, -2, fieldName.ptr);
 }

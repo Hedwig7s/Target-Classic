@@ -4,8 +4,8 @@ import 'package:dart_lua_ffi/generated_bindings.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/luaerrors.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luareg.dart';
+import 'package:target_classic/plugins/loaders/lua/wrappers/luastring.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/metatable.dart';
-import 'package:target_classic/plugins/loaders/lua/utility/luastrings.dart';
 import 'package:ffi/ffi.dart';
 
 class IncorrectTypeError implements Exception {
@@ -39,13 +39,11 @@ void removeObject(int handle) {
 
 int handleGCCallback(Pointer<lua_State> L) {
   try {
-    using((arena) {
-      Pointer<Int64> ptr =
-          lua
-              .luaL_checkudata(L, 1, "handlecleanup".toLuaPointer(arena))
-              .cast<Int64>();
-      removeObject(ptr.value);
-    });
+    Pointer<Int64> ptr =
+        lua
+            .luaL_checkudata(L, 1, "handlecleanup".toLuaString().ptr)
+            .cast<Int64>();
+    removeObject(ptr.value);
     return 0;
   } catch (e, s) {
     return dartErrorToLua(L, e, s);

@@ -3,16 +3,12 @@ import 'dart:ffi';
 import 'package:dart_lua_ffi/generated_bindings.dart';
 import 'package:logging/logging.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
-import 'package:target_classic/plugins/loaders/lua/utility/luastrings.dart';
-import 'package:ffi/ffi.dart';
+import 'package:target_classic/plugins/loaders/lua/wrappers/luastring.dart';
 
 int luaError(Pointer<lua_State> luaState, String error) {
-  var luaerr = error.toLuaPointer();
-  try {
-    lua.lua_pushstring(luaState, luaerr);
-  } finally {
-    malloc.free(luaerr);
-  }
+  var luaerr = error.toLuaString();
+  lua.lua_pushstring(luaState, luaerr.ptr);
+
   return lua.lua_error(luaState);
 }
 
