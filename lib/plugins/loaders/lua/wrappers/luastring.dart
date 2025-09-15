@@ -1,7 +1,5 @@
 import 'dart:convert';
 import 'dart:ffi';
-
-import 'package:dart_lua_ffi/generated_bindings.dart';
 import 'package:ffi/ffi.dart';
 
 extension LuaPointer on String {
@@ -19,9 +17,10 @@ extension LuaPointer on String {
 }
 
 class LuaString {
-  static final ptrFinalizer = Finalizer<Pointer<luaL_Reg>>((ptr) {
+  static final ptrFinalizerCallback = (ptr) {
     malloc.free(ptr);
-  });
+  };
+  static final ptrFinalizer = Finalizer<Pointer<Char>>(ptrFinalizerCallback);
 
   late final Pointer<Char> ptr;
   late final String string;
@@ -32,6 +31,7 @@ class LuaString {
 
   LuaString.fromString(this.string) {
     this.ptr = this.string.toLuaPointer();
+    ptrFinalizer.attach(this, ptr, detach: this);
   }
 
   LuaString.fromPointer(Pointer<Char> ptr, int? length) {
@@ -45,12 +45,13 @@ class LuaString {
       clone[i] = bytes[i]; // Copy each byte including null terminator
     }
     this.ptr = clone.cast<Char>();
+    ptrFinalizer.attach(this, this.ptr, detach: this);
   }
 
   void free() {
     if (this._freed) return;
     this._freed = true;
-    ptrFinalizer.detach(this);
+    malloc.free(this.ptr);
     ptrFinalizer.detach(this);
   }
 }

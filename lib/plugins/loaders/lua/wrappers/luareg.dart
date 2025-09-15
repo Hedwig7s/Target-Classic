@@ -9,13 +9,18 @@ import 'package:target_classic/plugins/loaders/lua/wrappers/types.dart';
 typedef RegFunction = (String name, LuaCallback func);
 
 class LuaReg {
-  static final regFinalizer = Finalizer<Pointer<luaL_Reg>>((ptr) {
+  static final regFinalizerCallback = (ptr) {
     calloc.free(ptr);
-  });
-
-  static final nameFinalizer = Finalizer<List<LuaString>>((names) {
+  };
+  static final regFinalizer = Finalizer<Pointer<luaL_Reg>>(
+    regFinalizerCallback,
+  );
+  static final nameFinalizerCallback = (names) {
     names.forEach((name) => name.free());
-  });
+  };
+  static final nameFinalizer = Finalizer<List<LuaString>>(
+    nameFinalizerCallback,
+  );
 
   late final Pointer<luaL_Reg> ptr;
   late final List<LuaString> _names;
@@ -49,5 +54,8 @@ class LuaReg {
     if (this._freed) return;
     this._freed = true;
     regFinalizer.detach(this);
+    nameFinalizer.detach(this);
+    regFinalizerCallback(this.ptr);
+    nameFinalizerCallback(this._names);
   }
 }
