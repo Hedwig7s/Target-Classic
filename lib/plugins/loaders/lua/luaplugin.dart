@@ -34,7 +34,9 @@ void setupLuaState(Pointer<lua_State> luaState) {
   //TODO: Sandboxing
   lua.luaL_openlibs(luaState);
   createHandleGCMetatable(luaState);
+  lua.lua_createtable(luaState, 0, 0);
   registerDataTypes(luaState);
+  lua.lua_setglobal(luaState, "Classic".toLuaString().ptr);
 }
 
 class LuaPluginLoader implements PluginLoader {

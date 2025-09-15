@@ -10,5 +10,5 @@ void registerDataTypes(Pointer<lua_State> luaState) {
   lua.lua_createtable(luaState, 0, 0);
   addVector3(luaState);
   addEntityPosition(luaState);
-  lua.lua_setglobal(luaState, "DataTypes".toLuaString().ptr);
+  lua.lua_setfield(luaState, -2, "DataTypes".toLuaString().ptr);
 }

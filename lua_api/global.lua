@@ -1,5 +1,6 @@
 ---@meta global
----@module 'datatypes.vector3'
 
----@class DataTypes
-DataTypes = {}
+---@class Classic
+Classic = {
+    DataTypes = {}
+}
