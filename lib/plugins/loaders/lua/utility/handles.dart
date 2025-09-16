@@ -1,6 +1,8 @@
 import 'dart:ffi';
 
 import 'package:dart_lua_ffi/generated_bindings.dart';
+import 'package:dart_lua_ffi/macros.dart';
+import 'package:target_classic/plugins/loaders/lua/api/metatables.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/luaerrors.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luareg.dart';
@@ -40,9 +42,7 @@ void removeObject(int handle) {
 int handleGCCallback(Pointer<lua_State> L) {
   try {
     Pointer<Int64> ptr =
-        lua
-            .luaL_checkudata(L, 1, "handlecleanup".toLuaString().ptr)
-            .cast<Int64>();
+        lua.luaLD_checkudata(L, 1, "handlecleanup").cast<Int64>();
     removeObject(ptr.value);
     return 0;
   } catch (e, s) {
@@ -58,7 +58,7 @@ void createHandleGCMetatable(Pointer<lua_State> luaState) =>
 (Pointer<Int64> userdata, int handle) createUserData(
   Pointer<lua_State> luaState,
   Object object, {
-  int nuvalue = 1,
+  int nuvalue = 0,
   String metatable = "handlecleanup",
 }) {
   var userdata =
@@ -77,3 +77,10 @@ void createHandleGCMetatable(Pointer<lua_State> luaState) =>
 
 T getObjectFromUserData<T>(Pointer<Int64> userdata) =>
     retrieveObject<T>(userdata.value);
+
+Pointer<Int64> getHandleUserdata(
+  Pointer<lua_State> luaState,
+  String metatable,
+) {
+  return lua.luaLD_checkudata(luaState, 1, metatable).cast<Int64>();
+}

@@ -5,3 +5,5 @@ global record Classic
         Vector3: Vector3
     end
 end
+
+return Classic

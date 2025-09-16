@@ -54,11 +54,11 @@ class LuaPluginLoader implements PluginLoader {
     luaState = lua.luaL_newstate();
     setupLuaState(luaState!);
     var luaPath = p.absolute(filePath).toLuaString();
-    lua.luaL_loadfile(luaState!, luaPath.ptr); // TODO: Error handling
-    bool errored = lua.lua_pcall(luaState!, 0, LUA_MULTRET, 0) != 0;
+    lua.luaLD_loadfile(luaState!, luaPath.ptr); // TODO: Error handling
+    bool errored = lua.luaD_pcall(luaState!, 0, LUA_MULTRET, 0) != 0;
     if (errored) {
       final Pointer<Utf8> errorPointer =
-          lua.lua_tostring(luaState!, -1).cast<Utf8>();
+          lua.luaD_tostring(luaState!, -1).cast<Utf8>();
 
       final error = errorPointer.toDartString();
       throw Exception("Lua error: ${error}");
