@@ -25,9 +25,6 @@ class Message {
   }
 
   List<String> getParts({String overflowPrefix = "> "}) {
-    if (message.length < 64) {
-      return [sanitize(message)];
-    }
     List<String> parts = [];
     List<String> currentPart = [];
     List<String> currentWord = [];

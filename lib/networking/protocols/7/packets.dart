@@ -1,7 +1,7 @@
 import 'package:target_classic/colorcodes.dart';
 import 'package:target_classic/config/serverconfig.dart';
 import 'package:target_classic/context.dart';
-import 'package:target_classic/message.dart';
+import 'package:target_classic/chat/message.dart';
 
 import 'package:target_classic/networking/protocol.dart';
 
@@ -113,8 +113,7 @@ class IdentificationPacket7 extends Packet
     );
     connection.player = player;
     playerRegistry?.register(player);
-    if (player.entity != null)
-      context?.entityRegistry?.register(player.entity!);
+
     connection.logger.info(
       "Connection from ${connection.socket.remoteAddress.address}:${connection.socket.remotePort} identified as ${decodedData.name}",
     );
@@ -583,6 +582,14 @@ class MessagePacket7 extends Packet
     if (connection.player == null) return;
     Player player = connection.player!;
     String message = decodedData.message.trim();
+    if (message.startsWith("/")) {
+      // TODO: Move elsewhere when console added
+      connection.context?.commandRegistry?.dispatch(
+        rawCommand: message,
+        player: player,
+      );
+      return;
+    }
     message = message.replaceAllMapped(RegExp("%([0-9a-fA-F])"), (match) {
       // Damn you classicube
       String colorCode = match.group(1) ?? "";
@@ -592,6 +599,7 @@ class MessagePacket7 extends Packet
       return "&$colorCode";
     });
     if (message.isEmpty) return;
+
     if (player.chatroom != null) {
       try {
         player.chat(Message(message));

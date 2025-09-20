@@ -2,7 +2,7 @@ import 'package:events_emitter/events_emitter.dart';
 import 'package:logging/logging.dart';
 import 'package:target_classic/colorcodes.dart';
 import 'package:target_classic/cooldown.dart';
-import 'package:target_classic/message.dart';
+import 'package:target_classic/chat/message.dart';
 import 'package:target_classic/registries/namedregistry.dart';
 
 import 'package:target_classic/player.dart';

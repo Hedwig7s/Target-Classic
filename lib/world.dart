@@ -70,7 +70,8 @@ class World implements Nameable<String> {
     required this.name,
     this.filePath,
     blocks,
-  }) : this.logger = Logger('World $name'),
+  }) : assert(RegExp(r"^[a-zA-Z0-9]+$").hasMatch(name)),
+       this.logger = Logger('World $name'),
        this.blocks = blocks ?? List.filled(size.x * size.y * size.z, 0);
 
   static Future<World> fromFile(String filePath, WorldFormat? format) async {

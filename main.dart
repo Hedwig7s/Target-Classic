@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dotenv/dotenv.dart';
+import 'package:target_classic/commands/builtin/registerbuiltin.dart';
 import 'package:target_classic/cooldown.dart';
 
 import 'package:target_classic/networking/server.dart';
@@ -26,9 +27,9 @@ void main() async {
   Logger.root.onRecord.listen((record) {
     String recordMessage = record.message;
     Cooldown? logCooldown = logCooldowns[recordMessage];
-    if (!(logCooldown?.canUse() ?? true))
+    if (!(logCooldown?.canUse() ?? true)) {
       return;
-    else if (logCooldown == null) {
+    } else if (logCooldown == null) {
       logCooldowns[recordMessage] = Cooldown(
         maxCount: 1,
         resetTime: const Duration(milliseconds: 500),
@@ -46,6 +47,7 @@ void main() async {
     );
   });
   ServerContext context = await ServerContext.defaultContext();
+  registerBuiltinCommands(context);
   await context.pluginRegistry!.loadAllInDir("./plugins");
   Server server = context.server!;
   server.start();
@@ -70,7 +72,9 @@ void main() async {
       for (var world in worlds) {
         futures.add(world.save());
       }
-      for (var future in futures) await future;
+      for (var future in futures) {
+        await future;
+      }
     }
     if (context.heartbeat?.saltManager != null) {
       context.heartbeat!.saltManager.stopSaltSaver();

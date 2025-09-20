@@ -143,7 +143,7 @@ class Connection {
         await receivablePacket.receive(this, packetData);
       }
     } catch (e, stackTrace) {
-      logger.warning('Error processing incoming data: $e\n$stackTrace');
+      logger.warning('Error processing incoming data\n$e\n$stackTrace');
       this.close("Internal error while processing incoming data.");
     } finally {
       processingIncoming = false;

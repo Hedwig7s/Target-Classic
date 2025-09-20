@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
-import 'package:target_classic/chatroom.dart';
+import 'package:target_classic/chat/chatroom.dart';
 
 import 'package:target_classic/config/serverconfig.dart';
 import 'package:target_classic/constants.dart';
@@ -13,6 +13,7 @@ import 'package:target_classic/entity.dart';
 import 'package:target_classic/networking/heartbeat.dart';
 import 'package:target_classic/networking/server.dart';
 import 'package:target_classic/player.dart';
+import 'package:target_classic/registries/commandregistry.dart';
 import 'package:target_classic/registries/incrementalregistry.dart';
 import 'package:target_classic/registries/pluginregistry.dart';
 import 'package:target_classic/world.dart';
@@ -33,6 +34,7 @@ class ServerContext {
   SaltManager? saltManager;
   Heartbeat? heartbeat;
   PluginRegistry? pluginRegistry;
+  CommandRegistry? commandRegistry;
 
   static Future<ServerContext> defaultContext() async {
     ServerContext context = ServerContext();
@@ -47,6 +49,7 @@ class ServerContext {
     context.saltManager = await SaltManager.tryFromFile();
     context.saltManager?.cacheSalt();
 
+    context.entityRegistry = EntityRegistry();
     context.playerRegistry = PlayerRegistry();
 
     context.heartbeat = Heartbeat(
@@ -85,12 +88,12 @@ class ServerContext {
       });
     });
 
-    context.server = new Server(
+    context.server = Server(
       context.serverConfig!.host,
       context.serverConfig!.port,
       context: context,
     );
-
+    context.commandRegistry = CommandRegistry();
     context.pluginRegistry = PluginRegistry();
 
     return context;

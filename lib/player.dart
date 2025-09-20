@@ -1,14 +1,14 @@
 import 'package:events_emitter/events_emitter.dart';
 import 'package:logging/logging.dart';
 import 'package:target_classic/context.dart';
-import 'package:target_classic/chatroom.dart';
+import 'package:target_classic/chat/chatroom.dart';
 import 'package:target_classic/config/serverconfig.dart';
 
 import 'package:target_classic/block.dart';
 import 'package:target_classic/cooldown.dart';
 import 'package:target_classic/datatypes.dart';
 import 'package:target_classic/entity.dart';
-import 'package:target_classic/message.dart';
+import 'package:target_classic/chat/message.dart';
 import 'package:target_classic/networking/connection.dart';
 import 'package:target_classic/networking/packet.dart';
 import 'package:target_classic/networking/protocol.dart';
