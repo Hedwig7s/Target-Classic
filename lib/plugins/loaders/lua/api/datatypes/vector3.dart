@@ -12,15 +12,13 @@ import 'package:target_classic/plugins/loaders/lua/wrappers/luastring.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/metatable.dart';
 import 'package:ffi/ffi.dart';
 
-int IVector3Index(Pointer<lua_State> luaState) {
+int Vector3Index(Pointer<lua_State> luaState) {
   return using((arena) {
     try {
-      final userdata = getHandleUserdata(luaState, Metatables.Vector3.name);
-      final vector3 = getObjectFromUserData<Vector3>(userdata);
-      final sizeT = arena<Size>();
-      final indexRaw = lua.luaLD_checklstring(luaState, 2, sizeT);
-      final int size = sizeT.value;
-      final String index = LuaString.fromPointer(indexRaw, size).string;
+      final (vector3, index) = getIndexData<Vector3>(
+        luaState,
+        Metatables.Vector3,
+      );
 
       final map = vector3.toMap();
       final num? value = map[index];
@@ -33,10 +31,8 @@ int IVector3Index(Pointer<lua_State> luaState) {
         }
         return 1;
       }
-      lua.lua_getmetatable(luaState, 1);
-      lua.lua_pushvalue(luaState, 2);
-      lua.lua_gettable(luaState, -2);
-      if (lua.luaD_isnil(luaState, -1)) indexError(luaState, index);
+      getFromMetatable(luaState, index);
+      if (lua.lua_isnil(luaState, -1)) return indexError(luaState, index);
       return 1;
     } catch (e, s) {
       return dartErrorToLua(luaState, e, s);
@@ -44,58 +40,60 @@ int IVector3Index(Pointer<lua_State> luaState) {
   });
 }
 
-int IVector3ToInt(Pointer<lua_State> luaState) {
+int Vector3ToInt(Pointer<lua_State> luaState) {
   try {
     final userdata = getHandleUserdata(luaState, Metatables.Vector3.name);
     final vector3 = getObjectFromUserData<Vector3>(userdata);
-    createIVector3(luaState, vector3: vector3.toInt());
+    createVector3(luaState, vector3: vector3.toInt());
     return 1;
   } catch (e, s) {
     return dartErrorToLua(luaState, e, s);
   }
 }
 
-int IVector3ToDouble(Pointer<lua_State> luaState) {
+int Vector3ToDouble(Pointer<lua_State> luaState) {
   try {
     final userdata = getHandleUserdata(luaState, Metatables.Vector3.name);
     final vector3 = getObjectFromUserData<Vector3>(userdata);
-    createIVector3(luaState, vector3: vector3.toDouble());
+    createVector3(luaState, vector3: vector3.toDouble());
     return 1;
   } catch (e, s) {
     return dartErrorToLua(luaState, e, s);
   }
 }
 
-void createIVector3Meta(Pointer<lua_State> luaState) =>
+void createVector3Meta(Pointer<lua_State> luaState) =>
     createMetatable(luaState, Metatables.Vector3.name, [
       GC_METAMETHOD,
-      ("__index", IVector3Index),
+      ("__index", Vector3Index),
       ("__tostring", getToStringMetamethod(Metatables.Vector3)),
-      ("toInt", IVector3ToInt),
-      ("toDouble", IVector3ToDouble),
+      ("toInt", Vector3ToInt),
+      ("toDouble", Vector3ToDouble),
     ]);
 
-int createIVector3(
+int createVector3(
   Pointer<lua_State> luaState, {
   bool? isFloat,
   Vector3? vector3,
 }) {
   try {
-    if (vector3 != null && isFloat != null)
+    if (vector3 != null && isFloat != null) {
       throw Exception("Vector3 can't be provided with an isFloat value");
-    if (vector3 == null && isFloat == null)
+    }
+    if (vector3 == null && isFloat == null) {
       throw Exception("Either isFloat or Vector3 must be provided");
+    }
 
     if (isFloat == true) {
       List<double> coords = [];
       for (int i = 1; i <= 3; i++) {
-        coords.add(lua.luaLD_checknumber(luaState, i));
+        coords.add(lua.luaL_checknumber(luaState, i));
       }
       vector3 = Vector3F(coords[0], coords[1], coords[2]);
     } else if (vector3 == null) {
       List<int> coords = [];
       for (int i = 1; i <= 3; i++) {
-        coords.add(lua.luaLD_checkinteger(luaState, i));
+        coords.add(lua.luaL_checkinteger(luaState, i));
       }
       vector3 = Vector3I(coords[0], coords[1], coords[2]);
     }
@@ -106,20 +104,20 @@ int createIVector3(
   }
 }
 
-int createIVector3I(Pointer<lua_State> luaState) =>
-    createIVector3(luaState, isFloat: false);
+int createVector3I(Pointer<lua_State> luaState) =>
+    createVector3(luaState, isFloat: false);
 
-int createIVector3F(Pointer<lua_State> luaState) =>
-    createIVector3(luaState, isFloat: true);
+int createVector3F(Pointer<lua_State> luaState) =>
+    createVector3(luaState, isFloat: true);
 
 void addVector3(Pointer<lua_State> luaState) {
   final reg = LuaReg.fromFunctions([
-    ("newInt", createIVector3I),
-    ("newDouble", createIVector3F),
+    ("newInt", createVector3I),
+    ("newDouble", createVector3F),
   ]);
-  createIVector3Meta(luaState);
+  createVector3Meta(luaState);
   lua.lua_createtable(luaState, 0, 0);
-  lua.luaLD_setfuncs(luaState, reg.ptr, 0);
+  lua.luaL_setfuncs(luaState, reg.ptr, 0);
   var fieldName = "Vector3".toLuaString();
   lua.lua_setfield(luaState, -2, fieldName.ptr);
 }

@@ -23,7 +23,7 @@ const luaLibraryNames = {
 
 LuaFFIBind makeLua() {
   LuaFFIBind luaFFI = createLua(
-    "assets/" + luaLibraryNames[Platform.operatingSystem]!,
+    "assets/${luaLibraryNames[Platform.operatingSystem]!}",
   );
   return luaFFI;
 }
@@ -43,25 +43,28 @@ class LuaPluginLoader implements PluginLoader {
   final String filePath;
   Pointer<lua_State>? luaState;
   bool loaded = false;
+  @override
   Plugin? plugin;
   LuaPluginLoader(this.filePath);
+  @override
   load() {
-    if (this.loaded)
+    if (loaded) {
       throw Exception(
         "Cannot load when already loaded. Please unload first or use reload",
       );
-    this.loaded = true;
+    }
+    loaded = true;
     luaState = lua.luaL_newstate();
     setupLuaState(luaState!);
     var luaPath = p.absolute(filePath).toLuaString();
-    lua.luaLD_loadfile(luaState!, luaPath.ptr); // TODO: Error handling
-    bool errored = lua.luaD_pcall(luaState!, 0, LUA_MULTRET, 0) != 0;
+    lua.luaL_loadfile(luaState!, luaPath.ptr); // TODO: Error handling
+    bool errored = lua.lua_pcall(luaState!, 0, LUA_MULTRET, 0) != 0;
     if (errored) {
       final Pointer<Utf8> errorPointer =
-          lua.luaD_tostring(luaState!, -1).cast<Utf8>();
+          lua.lua_tostring(luaState!, -1).cast<Utf8>();
 
       final error = errorPointer.toDartString();
-      throw Exception("Lua error: ${error}");
+      throw Exception("Lua error: $error");
     }
   }
 }

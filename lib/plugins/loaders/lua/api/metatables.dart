@@ -1,6 +1,9 @@
+// ignore_for_file: constant_identifier_names
+
 import 'dart:ffi';
 
 import 'package:dart_lua_ffi/generated_bindings.dart';
+import 'package:ffi/ffi.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/handles.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luastring.dart';
@@ -8,10 +11,12 @@ import 'package:target_classic/plugins/loaders/lua/wrappers/types.dart';
 
 enum Metatables {
   Vector3("vector3"),
-  EntityPosition("entityposition");
+  EntityPosition("entityposition"),
+  Command("command"),
+  ParameterParser("parameterparser");
 
-  const Metatables(name) : this.name = "mcclassic." + name;
   final String name;
+  const Metatables(String name) : name = "mcclassic.$name";
 }
 
 LuaCallback getToStringMetamethod(Metatables metatable) {
@@ -22,4 +27,25 @@ LuaCallback getToStringMetamethod(Metatables metatable) {
     lua.lua_pushlstring(luaState, string.ptr, string.string.length);
     return 1;
   };
+}
+
+void getFromMetatable(Pointer<lua_State> luaState, String index) {
+  lua.lua_getmetatable(luaState, 1);
+  lua.lua_pushstring(luaState, index.toLuaString().ptr);
+  lua.lua_gettable(luaState, -2);
+}
+
+(T instance, String index) getIndexData<T>(
+  Pointer<lua_State> luaState,
+  Metatables metatable,
+) {
+  return using((arena) {
+    final userdata = getHandleUserdata(luaState, metatable.name);
+    final instance = getObjectFromUserData<T>(userdata);
+    final sizeT = arena<Size>();
+    final indexRaw = lua.luaL_checklstring(luaState, 2, sizeT);
+    final int size = sizeT.value;
+    final String index = LuaString.fromPointer(indexRaw, size).string;
+    return (instance, index);
+  });
 }

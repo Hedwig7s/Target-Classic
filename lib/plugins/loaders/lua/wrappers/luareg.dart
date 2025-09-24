@@ -30,8 +30,8 @@ class LuaReg {
   LuaReg(this.ptr, this._names);
 
   LuaReg.fromFunctions(List<RegFunction> functions) {
-    this.ptr = calloc<luaL_Reg>(functions.length + 1);
-    this._names = <LuaString>[];
+    ptr = calloc<luaL_Reg>(functions.length + 1);
+    _names = <LuaString>[];
 
     for (int i = 0; i < functions.length; i++) {
       final (name, func) = functions[i];
@@ -51,11 +51,11 @@ class LuaReg {
   }
 
   void free() {
-    if (this._freed) return;
-    this._freed = true;
+    if (_freed) return;
+    _freed = true;
     regFinalizer.detach(this);
     nameFinalizer.detach(this);
-    regFinalizerCallback(this.ptr);
-    nameFinalizerCallback(this._names);
+    regFinalizerCallback(ptr);
+    nameFinalizerCallback(_names);
   }
 }

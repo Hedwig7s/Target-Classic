@@ -1,8 +1,6 @@
 import 'dart:ffi';
 
 import 'package:dart_lua_ffi/generated_bindings.dart';
-import 'package:dart_lua_ffi/macros.dart';
-import 'package:target_classic/plugins/loaders/lua/api/metatables.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/luaerrors.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luareg.dart';
@@ -28,10 +26,11 @@ int storeObject(Object obj) {
 
 T retrieveObject<T>(int handle) {
   Object object = _handles[handle]!;
-  if (object is! T)
+  if (object is! T) {
     throw IncorrectTypeError(
       "Attempted to retrieve object of type $T. Got ${object.runtimeType}",
     );
+  }
   return object as T;
 }
 
@@ -42,7 +41,9 @@ void removeObject(int handle) {
 int handleGCCallback(Pointer<lua_State> L) {
   try {
     Pointer<Int64> ptr =
-        lua.luaLD_checkudata(L, 1, "handlecleanup").cast<Int64>();
+        lua
+            .luaL_checkudata(L, 1, "handlecleanup".toLuaString().ptr)
+            .cast<Int64>();
     removeObject(ptr.value);
     return 0;
   } catch (e, s) {
@@ -82,5 +83,7 @@ Pointer<Int64> getHandleUserdata(
   Pointer<lua_State> luaState,
   String metatable,
 ) {
-  return lua.luaLD_checkudata(luaState, 1, metatable).cast<Int64>();
+  return lua
+      .luaL_checkudata(luaState, 1, metatable.toLuaString().ptr)
+      .cast<Int64>();
 }

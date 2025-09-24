@@ -26,4 +26,4 @@ int dartErrorToLua(
 }
 
 int indexError(Pointer<lua_State> luaState, String index) =>
-    luaError(luaState, "Attempt to index invalid key: ${index}");
+    luaError(luaState, "Attempt to index invalid key: $index");

@@ -4,7 +4,7 @@ import 'package:ffi/ffi.dart';
 
 extension LuaPointer on String {
   Pointer<Char> toLuaPointer([Allocator allocator = malloc]) {
-    return this.toNativeUtf8(allocator: allocator).cast();
+    return toNativeUtf8(allocator: allocator).cast();
   }
 
   LuaString toLuaString() {
@@ -30,13 +30,13 @@ class LuaString {
   LuaString(this.ptr, this.string);
 
   LuaString.fromString(this.string) {
-    this.ptr = this.string.toLuaPointer();
+    ptr = string.toLuaPointer();
     ptrFinalizer.attach(this, ptr, detach: this);
   }
 
   LuaString.fromPointer(Pointer<Char> ptr, int? length) {
     final utf8Str = ptr.cast<Utf8>();
-    this.string = utf8Str.toDartString(length: length);
+    string = utf8Str.toDartString(length: length);
     final clone = malloc<Uint8>(
       utf8Str.length + 1,
     ); // TODO: Maybe split into seperate function cloning
@@ -49,9 +49,9 @@ class LuaString {
   }
 
   void free() {
-    if (this._freed) return;
-    this._freed = true;
-    malloc.free(this.ptr);
+    if (_freed) return;
+    _freed = true;
+    malloc.free(ptr);
     ptrFinalizer.detach(this);
   }
 }

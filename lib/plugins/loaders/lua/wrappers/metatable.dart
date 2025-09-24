@@ -16,10 +16,10 @@ void createMetatable(
   var metaname = name.toLuaString();
   lua.luaL_newmetatable(luaState, metaname.ptr);
 
-  lua.luaLD_setfuncs(luaState, reg.ptr, 0);
+  lua.luaL_setfuncs(luaState, reg.ptr, 0);
   if (setIndexToSelf) {
     lua.lua_pushvalue(luaState, -1); // copy metatable
     lua.lua_setfield(luaState, -2, "__index".toLuaString().ptr);
   }
-  lua.luaD_pop(luaState, 1);
+  lua.lua_pop(luaState, 1);
 }
