@@ -300,9 +300,10 @@ class EntryFixedPoint extends DataParserEntry {
 
   @override
   void decode(ByteDataReader data, Endian endianness, List out) {
-    int rawValue = signed
-        ? data.readInt(size, endianness)
-        : data.readUint(size, endianness);
+    int rawValue =
+        signed
+            ? data.readInt(size, endianness)
+            : data.readUint(size, endianness);
     double value = rawValue / (1 << fractionalBits);
     out.add(value);
   }
@@ -318,13 +319,14 @@ class EntryFixedPoint extends DataParserEntry {
       out.writeInt(size, intValue, endianness);
     } else {
       if (intValue < 0) {
-        throw ArgumentError('Fixed point value must be non-negative for unsigned entry');
+        throw ArgumentError(
+          'Fixed point value must be non-negative for unsigned entry',
+        );
       }
       out.writeUint(size, intValue, endianness);
     }
   }
 }
-
 
 class EndiannessEntry extends DataParserEntry {
   final int size = 0;

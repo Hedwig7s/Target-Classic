@@ -92,7 +92,7 @@ abstract class Command {
 }
 
 class ParsedCommand extends Command {
-  ParameterParser parser;
+  RootParser root;
   @override
   final String name;
   @override
@@ -108,25 +108,45 @@ class ParsedCommand extends Command {
 
   ParsedCommand({
     required this.name,
-    Set<String>? aliases,
     required this.summary,
     String? description,
     required this.permission,
-    required this.parser,
+    required this.root,
     Logger? logger,
   }) : description = description ?? summary,
-       aliases = aliases ?? {},
+       aliases = {},
        logger = logger ?? Logger("Command $name") {
-    // Ensure the name is included in aliases for simplicity
-    this.aliases.add(name);
-    for (var alias in this.aliases) {
-      assert(RegExp(r"^[a-zA-Z0-9]+$").hasMatch(alias));
+    if (root is ParameterParser && root is! ParameterParser<LiteralParameter>) {
+      throw ArgumentError.value(
+        root,
+        "root",
+        "Root must be RootParser or ParameterParser<LiteralParameter>",
+      );
+    } else if (root is ParameterParser<LiteralParameter>) {
+      aliases.add((root as ParameterParser).parameter.name);
+    } else {
+      for (var branch in root.branches) {
+        if (branch is ParameterParser<LiteralParameter>) {
+          aliases.add(branch.parameter.name);
+        } else {
+          throw ArgumentError(
+            "Root may only be followed by literal nodes. Found ${branch.runtimeType}",
+          );
+        }
+      }
+    }
+    for (var alias in aliases) {
+      if (!RegExp(r"^[a-zA-Z0-9]+$").hasMatch(alias)) {
+        throw Exception(
+          "Alias has invalid characters. Commands may only contain alphanumeric characters",
+        );
+      }
     }
   }
 
   @override
   void execute(CommandContext context) {
-    int executed = parser.execute(context);
+    int executed = root.execute(context);
     if (executed <= 0) {
       throw Exception("Nothing provided to execute!");
     }
@@ -135,6 +155,6 @@ class ParsedCommand extends Command {
 
   @override
   String syntax() {
-    return parser.syntax().map((var syntax) => "/$syntax").join();
+    return root.syntax().map((var syntax) => "/$syntax").join();
   }
 }

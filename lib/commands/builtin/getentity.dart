@@ -10,19 +10,22 @@ void registerGetEntity(ServerContext serverContext) {
     name: "getentity",
     summary: "Gets information about an entity",
     permission: "getentity",
-    parser: parameter(EntityParameter("Entity")).executes((
-      CommandContext context,
-      List<dynamic> args,
-    ) {
-      var entity = args[0] as Entity;
-      int? id = entity.ids[context.serverContext?.entityRegistry];
-      context.player.sendMessage(
-        Message(
-          "Entity $id\nName: ${entity.name}\nID: $id\nFancy Name: ${entity.fancyName}",
-        ),
-        "",
-      );
-    }),
+    root: literal("getentity").then(
+      parameter(EntityParameter("Entity")).executes((
+            CommandContext context,
+            List<dynamic> args,
+          ) {
+            var entity = args[1] as Entity;
+            int? id = entity.ids[context.serverContext?.entityRegistry];
+            context.player.sendMessage(
+              Message(
+                "Entity $id\nName: ${entity.name}\nID: $id\nFancy Name: ${entity.fancyName}\nPosition: ${entity.position}\nWorld: ${entity.world?.name}",
+              ),
+              "",
+            );
+          })
+          as ParameterParser,
+    ),
   );
   serverContext.commandRegistry?.register(command);
 }

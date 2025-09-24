@@ -39,7 +39,7 @@ class CommandRegistry {
     Entity? entity,
   }) {
     List<String> args = rawCommand.substring(1).split(" ");
-    String alias = args.removeAt(0);
+    String alias = args[0];
     Command? command = getCommand(alias);
     if (command == null) {
       player.sendMessage(

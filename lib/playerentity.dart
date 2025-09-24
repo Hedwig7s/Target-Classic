@@ -22,7 +22,7 @@ class PlayerEntity extends Entity {
       super.spawn(world);
       return;
     }
-    this.player.loadWorld(world);
+    player.loadWorld(world);
   }
 
   @override
@@ -32,14 +32,14 @@ class PlayerEntity extends Entity {
     }
     super.move(newPosition);
     if (!byPlayer) {
-      var packet = this.player.connection!.protocol!
+      var packet = player.connection!.protocol!
           .assertPacket<SendablePacket<SetPositionAndOrientationPacketData>>(
             PacketIds.setPositionAndOrientation,
           );
       packet.send(
-        this.player.connection!,
+        player.connection!,
         SetPositionAndOrientationPacketData(
-          playerId: this.worldId!,
+          playerId: -1,
           position: newPosition,
         ),
       );
@@ -48,19 +48,15 @@ class PlayerEntity extends Entity {
 
   @override
   spawnFor(Connection connection) {
-    if (this.world == null) throw Exception("No world to spawn in!");
-    if (this.worldId == null) throw Exception("No world id to spawn in!");
+    if (world == null) throw Exception("No world to spawn in!");
+    if (worldId == null) throw Exception("No world id to spawn in!");
     var packet = connection.protocol!
         .assertPacket<SendablePacket<SpawnPlayerPacketData>>(
           PacketIds.spawnPlayer,
         );
     packet.send(
       connection,
-      SpawnPlayerPacketData(
-        playerId: this.worldId!,
-        name: name,
-        position: position,
-      ),
+      SpawnPlayerPacketData(playerId: worldId!, name: name, position: position),
     );
   }
 

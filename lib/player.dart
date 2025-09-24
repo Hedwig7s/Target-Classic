@@ -68,14 +68,14 @@ class Player implements Nameable<String> {
   }) : assert(name.isNotEmpty, "Name must not be empty"),
        logger = Logger("Player $name"),
        cooldowns = cooldowns ?? PlayerCooldowns() {
-    this.entity = PlayerEntity(
+    entity = PlayerEntity(
       name: name,
       fancyName: fancyName,
       player: this,
       context: context,
     );
-    this.connection?.emitter.on("closed", (data) {
-      this.destroy();
+    connection?.emitter.on("closed", (data) {
+      destroy();
     });
   }
 
@@ -83,8 +83,9 @@ class Player implements Nameable<String> {
     if (connection == null) {
       return;
     }
-    if (connection!.protocol == null)
+    if (connection!.protocol == null) {
       throw Exception("Attempt to identify without protocol");
+    }
     var identificationPacket = connection!.protocol!
         .assertPacket<SendablePacket<IdentificationPacketData>>(
           PacketIds.identification,
@@ -94,10 +95,11 @@ class Player implements Nameable<String> {
     if (config != null) {
       serverName = config.serverName;
       motd = config.motd;
-    } else
+    } else {
       logger.warning(
         "Warning: No server config found for player $name. Name and motd not set",
       );
+    }
 
     identificationPacket.send(
       connection!,
@@ -112,10 +114,10 @@ class Player implements Nameable<String> {
   }
 
   void spawn() {
-    if (this.world == null) throw Exception("No world to spawn in!");
-    this.entity?.spawn(this.world!, calledBack: true);
-    if (this.connection?.protocol != null && this.entity != null) {
-      var packet = this.connection!.protocol!
+    if (world == null) throw Exception("No world to spawn in!");
+    entity?.spawn(world!, calledBack: true);
+    if (connection?.protocol != null && entity != null) {
+      var packet = connection!.protocol!
           .assertPacket<SendablePacket<SpawnPlayerPacketData>>(
             PacketIds.spawnPlayer,
           );
@@ -135,7 +137,7 @@ class Player implements Nameable<String> {
     logger.info("Loading world ${world.name}");
     worldEvents.clear();
     if (connection?.protocol != null) {
-      var packets = await connection!.protocol!.packets;
+      var packets = connection!.protocol!.packets;
       var levelInitPacket =
           packets[PacketIds.levelInitialize]
               as SendablePacket<LevelInitializePacketData>;
@@ -158,7 +160,7 @@ class Player implements Nameable<String> {
           sizeZ: world.size.z,
         ),
       );
-      EventCallback<({Vector3I position, BlockID block})> onSetBlock = (
+      onSetBlock(
         ({Vector3I position, BlockID block}) blockData,
       ) {
         var setBlockPacket = connection!.protocol
@@ -175,8 +177,8 @@ class Player implements Nameable<String> {
           connection!,
           SetBlockServerPacketData(position: position, blockId: block.index),
         );
-      };
-      EventCallback<Entity> onEntityAdded = (Entity entity) {
+      }
+      onEntityAdded(Entity entity) {
         if (entity == this.entity) return;
 
         entity.spawnFor(connection!);
@@ -241,8 +243,9 @@ class Player implements Nameable<String> {
 
               if (change.vector == Vector3F(0, 0, 0) &&
                   change.yaw == previous!.yaw &&
-                  change.pitch == previous!.pitch)
+                  change.pitch == previous!.pitch) {
                 return;
+              }
 
               if (change.x.abs() >= 3.9 ||
                   change.y.abs() >= 3.9 ||
@@ -292,8 +295,8 @@ class Player implements Nameable<String> {
 
         worldEvents.entityMovedListeners[entity] = entity.emitter
             .on<EntityPosition>("moved", onMoved);
-      };
-      EventCallback<(Entity, int)> onEntityRemoved = (
+      }
+      onEntityRemoved(
         (Entity entity, int worldId) data,
       ) {
         Entity entity = data.$1;
@@ -313,7 +316,7 @@ class Player implements Nameable<String> {
           connection!,
           DespawnPlayerPacketData(playerId: worldId),
         );
-      };
+      }
       for (var entity in world.entities.values) {
         onEntityAdded.call(entity);
       }
@@ -362,21 +365,21 @@ class Player implements Nameable<String> {
 
   void destroy() {
     logger.fine("Destroying player $name");
-    this.entity?.despawn();
+    entity?.despawn();
     emitter.emit('destroyed');
     clearEmitter(emitter);
-    this.connection?.close("Player destroyed");
-    this.worldEvents.clear();
+    connection?.close("Player destroyed");
+    worldEvents.clear();
 
     for (var listener in worldEvents.entityMovedListeners.values) {
       listener.cancel();
     }
-    this.destroyed = true;
-    this.entity?.destroy(byPlayer: true);
+    destroyed = true;
+    entity?.destroy(byPlayer: true);
   }
 
   void move(EntityPosition newPosition, {bool teleport = true}) {
-    if (this.entity == null) return;
+    if (entity == null) return;
     if (!teleport && !cooldowns.move.canUse()) {
       connection?.protocol
           ?.getPacket<SendablePacket<SetPositionAndOrientationPacketData>>(
@@ -391,11 +394,11 @@ class Player implements Nameable<String> {
           );
       return;
     }
-    this.entity?.move(newPosition, byPlayer: !teleport);
+    entity?.move(newPosition, byPlayer: !teleport);
   }
 
   void chat(Message message) {
-    this.chatroom?.sendMessage(this, message);
+    chatroom?.sendMessage(this, message);
   }
 
   void sendMessage(Message message, [String overflowPrefix = "> "]) {

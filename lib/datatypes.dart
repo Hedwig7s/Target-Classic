@@ -1,5 +1,8 @@
 import 'dart:math';
 
+const PLAYER_HEIGHT_OFFSET = 1.59375;
+const PLAYER_SELF_HEIGHT_OFFSET = -0.6875;
+
 class Vector3<T extends num> {
   final T x;
   final T y;
@@ -21,6 +24,14 @@ class Vector3<T extends num> {
 
   Vector3<double> toDouble() {
     return Vector3<double>(x.toDouble(), y.toDouble(), z.toDouble());
+  }
+
+  Vector3<double> toClientCoordinates([bool isSelf = false]) {
+    return Vector3F(
+      x.toDouble(),
+      y + PLAYER_HEIGHT_OFFSET + (isSelf ? PLAYER_SELF_HEIGHT_OFFSET : 0),
+      z.toDouble(),
+    );
   }
 
   @override
@@ -96,13 +107,21 @@ class EntityPosition {
     };
   }
 
+  EntityPosition toClientCoordinates([bool isSelf = false]) {
+    return EntityPosition.fromVector3(
+      vector: vector.toClientCoordinates(isSelf),
+      yaw: yaw,
+      pitch: pitch,
+    );
+  }
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is EntityPosition &&
-        this.vector == other.vector &&
-        this.yaw == other.yaw &&
-        this.pitch == other.pitch;
+        vector == other.vector &&
+        yaw == other.yaw &&
+        pitch == other.pitch;
   }
 
   EntityPosition operator +(EntityPosition other) {

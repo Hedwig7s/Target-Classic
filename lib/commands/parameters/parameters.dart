@@ -235,6 +235,7 @@ class OptionParameter extends Parameter {
     return "${optional ? OPTIONAL_LITERAL_OPEN : REQUIRED_PARAM_OPEN}$name: $type ${options.join("|")}${optional ? OPTIONAL_LITERAL_OPEN : REQUIRED_PARAM_CLOSE}";
   }
 }
+
 class IntParameter extends Parameter {
   @override
   final String type = "int";

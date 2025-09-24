@@ -2,7 +2,7 @@ import 'package:target_classic/commands/command.dart';
 import 'package:target_classic/commands/parameters/parameters.dart';
 
 class ParameterBranch {
-  final ParameterParser branch;
+  final RootParser branch;
   int current = 0;
   ParameterBranch(this.branch)
     : assert(branch.branches.isNotEmpty, "Branch must not be empty");
@@ -13,28 +13,45 @@ ParameterParser<T> parameter<T extends Parameter>(T parameter) {
 }
 
 ParameterParser<LiteralParameter> literal(String literal) {
-  return ParameterParser(LiteralParameter(literal));
+  return parameter(LiteralParameter(literal));
 }
 
 ParameterParser<OptionParameter> option(Set<String> options, String name) {
-  return ParameterParser(OptionParameter(options, name));
+  return parameter(OptionParameter(options, name));
 }
 
-class ParameterParser<T extends Parameter> {
+RootParser root() {
+  return RootParser();
+}
+
+class ParameterParser<T extends Parameter> extends RootParser {
+  final T parameter;
+  ParameterParser(this.parameter);
+  @override
+  RootParser then(ParameterParser<Parameter> node) {
+    if (parameter.optional && !node.parameter.optional) {
+      throw ArgumentError("Cannot have a required parameter after an optional");
+    }
+    return super.then(node);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ParameterParser && other.parameter == parameter;
+  }
+}
+
+class RootParser {
   final List<ParameterParser> branches = [];
   bool get isLeaf => branches.isEmpty;
   bool get isSegment => branches.length == 1;
   bool get isFork => branches.length > 1;
-  final T parameter;
   void Function(CommandContext context, List<dynamic> args)? willExecute;
-  ParameterParser(this.parameter);
-  ParameterParser then(ParameterParser node) {
-    if (parameter.optional && !node.parameter.optional) {
-      throw ArgumentError("Cannot have a required parameter after an optional");
-    }
+
+  RootParser then(ParameterParser node) {
     for (var branch in branches) {
       if (node == branch) {
-        return branch;
+        return this;
       }
     }
 
@@ -42,7 +59,7 @@ class ParameterParser<T extends Parameter> {
     return this;
   }
 
-  ParameterParser executes(
+  RootParser executes(
     void Function(CommandContext context, List<dynamic> args) toExecute,
   ) {
     willExecute = toExecute;
@@ -63,11 +80,13 @@ class ParameterParser<T extends Parameter> {
     }
 
     int i = 0;
-    List<String> handleNode(ParameterParser node) {
+    List<String> handleNode(RootParser node) {
       if (i >= 300) throw Exception("Too many iterations!");
       i++;
-      String syntax = getSyntax(node.parameter); // <example>
-      if (node.isLeaf) return [syntax];
+      if (node is ParameterParser) {
+        String syntax = getSyntax(node.parameter); // <example>
+        if (node.isLeaf) return [syntax];
+      }
       List<String> paths = [];
       for (var branch in node.branches) {
         var subPaths = handleNode(
@@ -85,12 +104,7 @@ class ParameterParser<T extends Parameter> {
     return handleNode(this);
   }
 
-  @override
-  bool operator ==(Object other) {
-    return other is ParameterParser && other.parameter == parameter;
-  }
-
-  ({ParameterParser node, int executed, CommandContext context}) _parse(
+  ({RootParser finalNode, int executed, CommandContext context}) _parse(
     CommandContext context, [
     bool shouldExecute = false,
   ]) {
@@ -98,42 +112,44 @@ class ParameterParser<T extends Parameter> {
     int deepestPath = 0;
     int depth = 0;
     CommandException? deepestException;
-    ParameterParser node = this;
+    RootParser node = this;
     int executed = 0;
     context = context.clone();
     for (int i = 0; ; i++) {
       if (i >= 300) throw Exception("Too many iterations");
-      try {
-        Parameter parameter = node.parameter;
-        context = parameter.parse(context.clone());
-      } on CommandException catch (e, stackTrace) {
-        if (depth >= deepestPath) deepestException = e;
-        ParameterBranch? lastBranch;
-        ParameterParser? nextNode;
-        while (true) {
-          lastBranch = branchStack.lastOrNull;
-          if (lastBranch == null) {
-            Error.throwWithStackTrace(
-              CommandSyntaxException(
-                "Failed to parse command:\n${deepestException?.message ?? "Unknown error"}",
-                "Failed to find valid path for command ${context.rawCommand}: Deepest exception: ${deepestException?.internalMessage ?? deepestException?.message ?? "Unknown error"}",
-              ),
-              stackTrace,
+      if (node is ParameterParser) {
+        try {
+          Parameter parameter = node.parameter;
+          context = parameter.parse(context.clone());
+        } on CommandException catch (e, stackTrace) {
+          if (depth >= deepestPath) deepestException = e;
+          ParameterBranch? lastBranch;
+          ParameterParser? nextNode;
+          while (true) {
+            lastBranch = branchStack.lastOrNull;
+            if (lastBranch == null) {
+              Error.throwWithStackTrace(
+                CommandSyntaxException(
+                  "Failed to parse command:\n${deepestException?.message ?? "Unknown error"}",
+                  "Failed to find valid path for command ${context.rawCommand}: Deepest exception: ${deepestException?.internalMessage ?? deepestException?.message ?? "Unknown error"}",
+                ),
+                stackTrace,
+              );
+            }
+            nextNode = lastBranch.branch.branches.elementAtOrNull(
+              lastBranch.current++,
             );
+            if (nextNode == null) {
+              branchStack.removeLast();
+              depth--;
+              continue;
+            }
+            break;
           }
-          nextNode = lastBranch.branch.branches.elementAtOrNull(
-            lastBranch.current++,
-          );
-          if (nextNode == null) {
-            branchStack.removeLast();
-            depth--;
-            continue;
-          }
-          break;
-        }
-        node = nextNode;
+          node = nextNode;
 
-        continue;
+          continue;
+        }
       }
       if (node.willExecute != null && shouldExecute) {
         node.willExecute!(context.clone(), context.parsedValues);
@@ -147,7 +163,7 @@ class ParameterParser<T extends Parameter> {
       depth++;
       if (depth > deepestPath) deepestPath = depth;
     }
-    return (node: node, executed: executed, context: context);
+    return (finalNode: node, executed: executed, context: context);
   }
 
   List<dynamic> parse(CommandContext context) {

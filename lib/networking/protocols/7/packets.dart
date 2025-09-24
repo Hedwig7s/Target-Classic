@@ -30,9 +30,12 @@ class IdentificationPacket7 extends Packet
           .uint8()
           .build();
 
+  @override
   int id = 0x00;
+  @override
   int length = 131;
 
+  @override
   IdentificationPacketData decode(List<int> data) {
     var decodedData = parser.decode(data);
     return IdentificationPacketData(
@@ -141,9 +144,12 @@ class PingPacket7 extends Packet
   static final DataParser parser =
       DataParserBuilder().bigEndian().uint8().build();
 
+  @override
   int id = 0x01; // Fixed to match packetdata ID
+  @override
   int length = 1;
 
+  @override
   PingPacketData decode(List<int> data) {
     return PingPacketData();
   }
@@ -165,7 +171,9 @@ class LevelInitializePacket7 extends Packet
   static final DataParser parser =
       DataParserBuilder().bigEndian().uint8().build();
 
+  @override
   int id = 0x02;
+  @override
   int length = 1;
 
   LevelInitializePacketData decode(List<int> data) {
@@ -189,7 +197,9 @@ class LevelDataChunkPacket7 extends Packet
           .uint8()
           .build();
 
+  @override
   int id = 0x03;
+  @override
   int length = 1028;
 
   LevelDataChunkPacketData decode(List<int> data) {
@@ -223,7 +233,9 @@ class LevelFinalizePacket7 extends Packet
           .uint16()
           .build();
 
+  @override
   int id = 0x04;
+  @override
   int length = 7;
 
   LevelFinalizePacketData decode(List<int> data) {
@@ -253,8 +265,11 @@ class SetBlockClientPacket7 extends Packet
           .uint8()
           .uint8()
           .build();
+  @override
   int id = 0x05;
+  @override
   int length = 9;
+  @override
   SetBlockClientPacketData decode(List<int> data) {
     var decodedData = parser.decode(data);
     return SetBlockClientPacketData(
@@ -312,7 +327,9 @@ class SetBlockServerPacket7 extends Packet
           .uint8()
           .build();
 
+  @override
   int id = 0x06;
+  @override
   int length = 7;
 
   SetBlockServerPacketData decode(List<int> data) {
@@ -349,7 +366,9 @@ class SpawnPlayerPacket7 extends Packet
           .uint8()
           .uint8()
           .build();
+  @override
   int id = 0x07;
+  @override
   int length = 74;
   SpawnPlayerPacketData decode(List<int> data) {
     var decodedData = parser.decode(data);
@@ -358,7 +377,7 @@ class SpawnPlayerPacket7 extends Packet
       name: decodedData[2],
       position: EntityPosition(
         decodedData[3],
-        decodedData[4],
+        decodedData[4] - PLAYER_HEIGHT_OFFSET,
         decodedData[5],
         decodedData[6],
         decodedData[7],
@@ -368,15 +387,16 @@ class SpawnPlayerPacket7 extends Packet
 
   @override
   List<int> encode(SpawnPlayerPacketData data) {
+    var position = data.position.toClientCoordinates(data.playerId == -1);
     return parser.encode([
       data.id,
       data.playerId,
       data.name,
-      data.position.x,
-      data.position.y,
-      data.position.z,
-      data.position.yaw,
-      data.position.pitch,
+      position.x,
+      position.y,
+      position.z,
+      position.yaw,
+      position.pitch,
     ]);
   }
 }
@@ -396,15 +416,18 @@ class SetPositionAndOrientationPacket7 extends Packet
           .uint8()
           .uint8()
           .build();
+  @override
   int id = 0x08;
+  @override
   int length = 10;
+  @override
   SetPositionAndOrientationPacketData decode(List<int> data) {
     var decodedData = parser.decode(data);
     return SetPositionAndOrientationPacketData(
       playerId: decodedData[1],
       position: EntityPosition(
         decodedData[2],
-        decodedData[3],
+        decodedData[3] - PLAYER_HEIGHT_OFFSET,
         decodedData[4],
         decodedData[5],
         decodedData[6],
@@ -414,14 +437,16 @@ class SetPositionAndOrientationPacket7 extends Packet
 
   @override
   List<int> encode(SetPositionAndOrientationPacketData data) {
+    var position = data.position.toClientCoordinates(data.playerId == -1);
+
     return parser.encode([
       data.id,
       data.playerId,
-      data.position.x,
-      data.position.y,
-      data.position.z,
-      data.position.yaw,
-      data.position.pitch,
+      position.x,
+      position.y,
+      position.z,
+      position.yaw,
+      position.pitch,
     ]);
   }
 
@@ -446,7 +471,9 @@ class PositionAndOrientationUpdatePacket7 extends Packet
           .uint8()
           .uint8()
           .build();
+  @override
   int id = 0x09;
+  @override
   int length = 10;
   PositionAndOrientationUpdatePacketData decode(List<int> data) {
     var decodedData = parser.decode(data);
@@ -454,7 +481,7 @@ class PositionAndOrientationUpdatePacket7 extends Packet
       playerId: decodedData[1],
       position: EntityPosition(
         decodedData[2],
-        decodedData[3],
+        decodedData[3] - PLAYER_HEIGHT_OFFSET,
         decodedData[4],
         decodedData[5],
         decodedData[6],
@@ -464,13 +491,15 @@ class PositionAndOrientationUpdatePacket7 extends Packet
 
   @override
   List<int> encode(PositionAndOrientationUpdatePacketData data) {
+    var position = data.position.toClientCoordinates(data.playerId == -1);
+
     return parser.encode([
       data.id,
       data.playerId,
       data.position.x,
-      data.position.y,
-      data.position.z,
-      data.position.yaw,
+      position.y,
+      position.z,
+      position.yaw,
       data.position.pitch,
     ]);
   }
@@ -487,24 +516,32 @@ class PositionUpdatePacket7 extends Packet
           .fixedPoint(size: 1, fractionalBits: 5, signed: true)
           .fixedPoint(size: 1, fractionalBits: 5, signed: true)
           .build();
+  @override
   int id = 0x09;
+  @override
   int length = 10;
   PositionUpdatePacketData decode(List<int> data) {
     var decodedData = parser.decode(data);
     return PositionUpdatePacketData(
       playerId: decodedData[1],
-      position: Vector3F(decodedData[2], decodedData[3], decodedData[4]),
+      position: Vector3F(
+        decodedData[2],
+        decodedData[3] - PLAYER_HEIGHT_OFFSET,
+        decodedData[4],
+      ),
     );
   }
 
   @override
   List<int> encode(PositionUpdatePacketData data) {
+    var position = data.position.toClientCoordinates(data.playerId == -1);
+
     return parser.encode([
       data.id,
       data.playerId,
-      data.position.x,
-      data.position.y,
-      data.position.z,
+      position.x,
+      position.y,
+      position.z,
     ]);
   }
 }
@@ -513,7 +550,9 @@ class OrientationUpdatePacket7 extends Packet
     with SendablePacket<OrientationUpdatePacketData> {
   static final DataParser parser =
       DataParserBuilder().bigEndian().uint8().sint8().uint8().uint8().build();
+  @override
   int id = 0x09;
+  @override
   int length = 10;
   OrientationUpdatePacketData decode(List<int> data) {
     var decodedData = parser.decode(data);
@@ -538,7 +577,9 @@ class DespawnPlayerPacket7 extends Packet
     with SendablePacket<DespawnPlayerPacketData> {
   static final DataParser parser =
       DataParserBuilder().bigEndian().uint8().sint8().build();
+  @override
   int id = 0x0A;
+  @override
   int length = 2;
 
   DespawnPlayerPacketData decode(List<int> data) {
@@ -563,9 +604,12 @@ class MessagePacket7 extends Packet
           .sint8()
           .fixedString(64, Encoding.getByName('ascii')!, padding: ' ')
           .build();
+  @override
   int id = 0x0B;
+  @override
   int length = 66;
 
+  @override
   MessagePacketData decode(List<int> data) {
     var decodedData = parser.decode(data);
     return MessagePacketData(playerId: decodedData[1], message: decodedData[2]);
@@ -637,7 +681,9 @@ class DisconnectPlayerPacket7 extends Packet
           .uint8()
           .fixedString(64, Encoding.getByName("ascii")!, padding: ' ')
           .build();
+  @override
   int id = 0x0C;
+  @override
   int length = 2;
 
   DisconnectPlayerPacketData decode(List<int> data) {
@@ -662,7 +708,9 @@ class UpdateUserTypePacket7 extends Packet
     with SendablePacket<UpdateUserTypePacketData> {
   static final DataParser parser =
       DataParserBuilder().bigEndian().uint8().sint8().build();
+  @override
   int id = 0x0D;
+  @override
   int length = 2;
 
   UpdateUserTypePacketData decode(List<int> data) {
