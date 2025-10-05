@@ -1,15 +1,14 @@
 import 'dart:ffi';
 
-import 'package:dart_lua_ffi/generated_bindings.dart';
+import 'package:dart_luajit_ffi/generated_bindings.dart';
 import 'package:target_classic/datatypes.dart';
 import 'package:target_classic/plugins/loaders/lua/api/datatypes/vector3.dart';
-import 'package:target_classic/plugins/loaders/lua/api/metatables.dart';
-import 'package:target_classic/plugins/loaders/lua/utility/handles.dart';
+import 'package:target_classic/plugins/loaders/lua/utility/metatables.dart';
+import 'package:target_classic/plugins/loaders/lua/wrappers/userdata.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/luaerrors.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luareg.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luastring.dart';
-import 'package:target_classic/plugins/loaders/lua/wrappers/metatable.dart';
 import 'package:ffi/ffi.dart';
 
 int EntityPositionIndex(Pointer<lua_State> luaState) {
@@ -27,7 +26,7 @@ int EntityPositionIndex(Pointer<lua_State> luaState) {
       } else if (["yaw", "pitch"].contains(index)) {
         lua.lua_pushinteger(luaState, value as int);
       } else if (index == "vector") {
-        lua.lua_getiuservalue(luaState, 1, 1);
+        getUserValueFromStack(luaState, 1, 1);
       }
       return 1;
     } catch (e, s) {
@@ -72,7 +71,7 @@ int createEntityPosition(
       nuvalue: 1,
     );
     createVector3(luaState, vector3: entityPosition.vector);
-    lua.lua_setiuservalue(luaState, -2, 1);
+    setUserValueOnStack(luaState, -2, 1);
     return 1;
   } catch (e, s) {
     return dartErrorToLua(luaState, e, s);

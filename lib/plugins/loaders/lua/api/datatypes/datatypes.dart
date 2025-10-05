@@ -1,6 +1,6 @@
 import 'dart:ffi';
 
-import 'package:dart_lua_ffi/generated_bindings.dart';
+import 'package:dart_luajit_ffi/generated_bindings.dart';
 import 'package:target_classic/plugins/loaders/lua/api/datatypes/entityposition.dart';
 import 'package:target_classic/plugins/loaders/lua/api/datatypes/vector3.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';

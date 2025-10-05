@@ -1,15 +1,14 @@
 import 'dart:ffi';
 
-import 'package:dart_lua_ffi/generated_bindings.dart';
-import 'package:dart_lua_ffi/macros.dart';
+import 'package:dart_luajit_ffi/generated_bindings.dart';
+import 'package:dart_luajit_ffi/macros.dart';
 import 'package:target_classic/datatypes.dart';
-import 'package:target_classic/plugins/loaders/lua/api/metatables.dart';
-import 'package:target_classic/plugins/loaders/lua/utility/handles.dart';
+import 'package:target_classic/plugins/loaders/lua/utility/metatables.dart';
+import 'package:target_classic/plugins/loaders/lua/wrappers/userdata.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/luaerrors.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luareg.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luastring.dart';
-import 'package:target_classic/plugins/loaders/lua/wrappers/metatable.dart';
 import 'package:ffi/ffi.dart';
 
 int Vector3Index(Pointer<lua_State> luaState) {
