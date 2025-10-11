@@ -43,12 +43,13 @@ class PluginRegistry {
     late final PluginLoader loader;
     var extension = p.extension(filePath);
     switch (extension) {
-      case ".lua":
+      /*case ".lua":
         {
+          
           await luaPlugin.loadLibrary();
           loader = luaPlugin.LuaPluginLoader(filePath);
           break;
-        }
+        }*/
       default:
         {
           logger.warning("Unrecognised plugin file: ${p.basename(filePath)}");
@@ -56,7 +57,7 @@ class PluginRegistry {
         }
     }
     try {
-      loader.load(); // TODO: Actually make it create a plugin
+      //  loader.load(); // TODO: Actually make it create a plugin
     } catch (e, s) {
       logger.warning(
         "Failed to load loader for extension $extension\nError: $e\n$s",

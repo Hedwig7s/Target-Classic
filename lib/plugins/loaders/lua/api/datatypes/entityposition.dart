@@ -40,6 +40,7 @@ void createEntityPositionMeta(Pointer<lua_State> luaState) =>
       GC_METAMETHOD,
       ("__index", EntityPositionIndex),
       ("__tostring", getToStringMetamethod(Metatables.EntityPosition)),
+      ("__eq", getEqualityMetamethod(Metatables.EntityPosition))
     ]);
 
 int createEntityPosition(

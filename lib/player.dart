@@ -160,9 +160,7 @@ class Player implements Nameable<String> {
           sizeZ: world.size.z,
         ),
       );
-      onSetBlock(
-        ({Vector3I position, BlockID block}) blockData,
-      ) {
+      onSetBlock(({Vector3I position, BlockID block}) blockData) {
         var setBlockPacket = connection!.protocol
             ?.getPacket<SendablePacket<SetBlockServerPacketData>>(
               PacketIds.setBlockServer,
@@ -178,6 +176,7 @@ class Player implements Nameable<String> {
           SetBlockServerPacketData(position: position, blockId: block.index),
         );
       }
+
       onEntityAdded(Entity entity) {
         if (entity == this.entity) return;
 
@@ -296,9 +295,8 @@ class Player implements Nameable<String> {
         worldEvents.entityMovedListeners[entity] = entity.emitter
             .on<EntityPosition>("moved", onMoved);
       }
-      onEntityRemoved(
-        (Entity entity, int worldId) data,
-      ) {
+
+      onEntityRemoved((Entity entity, int worldId) data) {
         Entity entity = data.$1;
         int worldId = data.$2;
         if (entity == this.entity) return;
@@ -317,6 +315,7 @@ class Player implements Nameable<String> {
           DespawnPlayerPacketData(playerId: worldId),
         );
       }
+
       for (var entity in world.entities.values) {
         onEntityAdded.call(entity);
       }

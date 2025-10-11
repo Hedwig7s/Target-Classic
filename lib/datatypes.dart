@@ -1,4 +1,4 @@
-import 'dart:math';
+import 'dart:math' as math;
 
 const PLAYER_HEIGHT_OFFSET = 1.59375;
 const PLAYER_SELF_HEIGHT_OFFSET = -0.6875;
@@ -60,12 +60,24 @@ class Vector3<T extends num> {
     return Vector3(x / scalar, y / scalar, z / scalar);
   }
 
+  Vector3 operator %(Vector3 other) {
+    return Vector3(x % other.x, y % other.y, z % other.z);
+  }
+
+  Vector3 pow(Vector3 other) {
+    return Vector3(
+      math.pow(x, other.x),
+      math.pow(y, other.y),
+      math.pow(z, other.z),
+    );
+  }
+
   num dot(Vector3 other) {
     return x * other.x + y * other.y + z * other.z;
   }
 
   double magnitude() {
-    return sqrt(x * x + y * y + z * z);
+    return math.sqrt(x * x + y * y + z * z);
   }
 
   Vector3 normalize() {

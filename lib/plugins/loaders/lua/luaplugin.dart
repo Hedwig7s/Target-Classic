@@ -46,10 +46,19 @@ LuaFFIBind? tryMakeLua() {
 LuaFFIBind? get luaOptional => _lua ?? tryMakeLua();
 
 LuaFFIBind get lua => _lua!;
+int atPanic(Pointer<lua_State> L) {
+  final msg = lua.lua_tostring(L, -1).cast<Utf8>().toDartString();
+  Logger.root.severe("Lua panic: $msg");
+  return 0;
+}
 
 void setupLuaState(Pointer<lua_State> luaState) {
-  //TODO: Sandboxing
+  //TODO: Sandboxing and isolates
   lua.luaL_openlibs(luaState);
+  lua.lua_atpanic(
+    luaState,
+    Pointer.fromFunction<Int Function(Pointer<lua_State>)>(atPanic, 0),
+  );
   createHandleGCMetatable(luaState);
   lua.lua_createtable(luaState, 0, 0);
   registerDataTypes(luaState);
@@ -82,7 +91,8 @@ class LuaPluginLoader implements PluginLoader {
     setupLuaState(luaState!);
     var luaPath = p.absolute(filePath).toLuaString();
     lua.luaL_loadfile(luaState!, luaPath.ptr);
-    bool errored = lua.lua_pcall(luaState!, 0, LUA_MULTRET, 0) != 0;
+
+    bool errored = lua.lua_pcall(luaState!, 0, LUA_MULTRET, 0) != LUA_OK;
     if (errored) {
       final Pointer<Utf8> errorPointer =
           lua.lua_tostring(luaState!, -1).cast<Utf8>();

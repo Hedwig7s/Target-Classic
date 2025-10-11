@@ -6,6 +6,7 @@ import 'package:dart_luajit_ffi/generated_bindings.dart';
 import 'package:dart_luajit_ffi/macros.dart';
 import 'package:ffi/ffi.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
+import 'package:target_classic/plugins/loaders/lua/utility/luaerrors.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/userdata.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luareg.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luastring.dart';
@@ -41,11 +42,28 @@ void createMetatable(
 
 LuaCallback getToStringMetamethod(Metatables metatable) {
   return (Pointer<lua_State> luaState) {
-    var handle = getHandleUserdata(luaState, metatable.name);
-    var object = getObjectFromUserData(handle);
-    final string = object.toString().toLuaString();
-    lua.lua_pushlstring(luaState, string.ptr, string.string.length);
-    return 1;
+    try {
+      var object = getObjectFromStack(luaState, metatable.name, 1);
+      final string = object.$2.toString().toLuaString();
+      lua.lua_pushlstring(luaState, string.ptr, string.string.length);
+      return 1;
+    } catch (e, s) {
+      return dartErrorToLua(luaState, e, s);
+    }
+  };
+}
+
+LuaCallback getEqualityMetamethod(Metatables metatable) {
+  return (Pointer<lua_State> luaState) {
+    try {
+      var object = getObjectFromStack(luaState, metatable.name, 1).$2;
+      var other = getObjectFromStack(luaState, null, 2).$2;
+
+      lua.lua_pushboolean(luaState, object == other ? 1 : 0);
+      return 1;
+    } catch (e, s) {
+      return dartErrorToLua(luaState, e, s);
+    }
   };
 }
 
@@ -60,8 +78,7 @@ void getFromMetatable(Pointer<lua_State> luaState, String index) {
   Metatables metatable,
 ) {
   return using((arena) {
-    final userdata = getHandleUserdata(luaState, metatable.name);
-    final instance = getObjectFromUserData<T>(userdata);
+    final instance = getObjectFromStack<T>(luaState, metatable.name, 1).$2;
     final sizeT = arena<Size>();
     final indexRaw = lua.luaL_checklstring(luaState, 2, sizeT);
     final int size = sizeT.value;

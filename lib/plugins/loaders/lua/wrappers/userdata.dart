@@ -166,8 +166,21 @@ Pointer<DartDataStruct> getHandleUserdata(
 }
 
 Pointer<DartDataStruct> getHandleUserdataUnchecked(
-  Pointer<lua_State> luaState, [
-  int valueIndex = 1,
-]) {
+  Pointer<lua_State> luaState,
+  int valueIndex,
+) {
   return lua.lua_touserdata(luaState, valueIndex).cast<DartDataStruct>();
+}
+
+(Pointer<DartDataStruct> userdata, T object) getObjectFromStack<T>(
+  Pointer<lua_State> luaState,
+  String? metatable,
+  int valueIndex,
+) {
+  final userdata =
+      metatable != null
+          ? getHandleUserdata(luaState, metatable, valueIndex)
+          : getHandleUserdataUnchecked(luaState, valueIndex);
+  final object = getObjectFromUserData<T>(userdata);
+  return (userdata, object);
 }

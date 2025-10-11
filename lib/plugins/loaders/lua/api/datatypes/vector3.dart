@@ -3,7 +3,10 @@ import 'dart:ffi';
 import 'package:dart_luajit_ffi/generated_bindings.dart';
 import 'package:dart_luajit_ffi/macros.dart';
 import 'package:target_classic/datatypes.dart';
+import 'package:target_classic/plugins/loaders/lua/utility/functions.dart';
+import 'package:target_classic/plugins/loaders/lua/utility/luaobjects.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/metatables.dart';
+import 'package:target_classic/plugins/loaders/lua/wrappers/types.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/userdata.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/luaerrors.dart';
@@ -39,36 +42,78 @@ int Vector3Index(Pointer<lua_State> luaState) {
   });
 }
 
-int Vector3ToInt(Pointer<lua_State> luaState) {
-  try {
-    final userdata = getHandleUserdata(luaState, Metatables.Vector3.name);
-    final vector3 = getObjectFromUserData<Vector3>(userdata);
-    createVector3(luaState, vector3: vector3.toInt());
-    return 1;
-  } catch (e, s) {
-    return dartErrorToLua(luaState, e, s);
-  }
-}
+LuaCallback transformVector3<R>(
+  R Function(Vector3 vector3) transformFunction,
+) => transformObject<Vector3, R>(Metatables.Vector3, transformFunction);
 
-int Vector3ToDouble(Pointer<lua_State> luaState) {
-  try {
-    final userdata = getHandleUserdata(luaState, Metatables.Vector3.name);
-    final vector3 = getObjectFromUserData<Vector3>(userdata);
-    createVector3(luaState, vector3: vector3.toDouble());
-    return 1;
-  } catch (e, s) {
-    return dartErrorToLua(luaState, e, s);
-  }
-}
+LuaCallback calculateOnVector3<O, R>(
+  R Function(Vector3 vector3, O other) calculateFunction,
+) => calculateOnObject(Metatables.Vector3, calculateFunction);
 
-void createVector3Meta(Pointer<lua_State> luaState) =>
-    createMetatable(luaState, Metatables.Vector3.name, [
-      GC_METAMETHOD,
-      ("__index", Vector3Index),
-      ("__tostring", getToStringMetamethod(Metatables.Vector3)),
-      ("toInt", Vector3ToInt),
-      ("toDouble", Vector3ToDouble),
-    ]);
+void createVector3Meta(
+  Pointer<lua_State> luaState,
+) => createMetatable(luaState, Metatables.Vector3.name, [
+  GC_METAMETHOD,
+  ("__index", Vector3Index),
+  ("__tostring", getToStringMetamethod(Metatables.Vector3)),
+  ("__eq", getEqualityMetamethod(Metatables.Vector3)),
+  ("toInt", transformVector3((Vector3 vector3) => vector3.toInt())),
+  ("toDouble", transformVector3((Vector3 vector3) => vector3.toDouble())),
+  (
+    "toClientCoordinates",
+    transformVector3((Vector3 vector3) => vector3.toClientCoordinates()),
+  ),
+  (
+    "__add",
+    calculateOnVector3((Vector3 vector3, Vector3 other) => vector3 + other),
+  ),
+  (
+    "__sub",
+    calculateOnVector3((Vector3 vector3, Vector3 other) => vector3 - other),
+  ),
+  (
+    "__mod",
+    calculateOnVector3((Vector3 vector3, Vector3 other) => vector3 % other),
+  ),
+  (
+    "__pow",
+    calculateOnVector3((Vector3 vector3, Vector3 other) => vector3.pow(other)),
+  ),
+  (
+    "__mul",
+    calculateOnVector3((Vector3 vector3, int other) => vector3 * other),
+  ),
+  (
+    "__div",
+    calculateOnVector3((Vector3 vector3, int other) => vector3 / other),
+  ),
+  (
+    "dot",
+    calculateOnVector3((Vector3 vector3, Vector3 other) => vector3.dot(other)),
+  ),
+  (
+    "magnitude",
+    wrapObjectFunction<Vector3>(Metatables.Vector3, (
+      luaState,
+      userdata,
+      vector3,
+    ) {
+      lua.lua_pushnumber(luaState, vector3.magnitude());
+      return 1;
+    }),
+  ),
+  (
+    "magnitude",
+    wrapObjectFunction<Vector3>(Metatables.Vector3, (
+      luaState,
+      userdata,
+      vector3,
+    ) {
+      lua.lua_pushnumber(luaState, vector3.magnitude());
+      return 1;
+    }),
+  ),
+]);
 
 int createVector3(
   Pointer<lua_State> luaState, {
