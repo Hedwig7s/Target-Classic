@@ -1,6 +1,6 @@
 import 'dart:ffi';
 
-import 'package:dart_luajit_ffi/generated_bindings.dart';
+import 'package:dart_lua_ffi/generated_bindings.dart';
 import 'package:ffi/ffi.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/callables.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luastring.dart';

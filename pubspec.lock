@@ -161,15 +161,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.6"
-  dart_luajit_ffi:
+  dart_lua_ffi:
     dependency: "direct main"
     description:
       path: "."
       ref: master
-      resolved-ref: dd6d964ac7bbe5e40d91646fccaf0a5bc6ef84c6
-      url: "https://github.com/Hedwig7s/dart_luajit_ffi.git"
+      resolved-ref: "7cacaa30d92ac60fe6468fc1f2e8da7c7fbd4867"
+      url: "https://github.com/Hedwig7s/dart_lua_ffi.git"
     source: git
-    version: "0.1.0"
+    version: "0.2.0"
   dart_style:
     dependency: transitive
     description:

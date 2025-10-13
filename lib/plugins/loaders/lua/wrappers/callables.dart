@@ -1,6 +1,6 @@
 import 'dart:ffi';
 
-import 'package:dart_luajit_ffi/generated_bindings.dart';
+import 'package:dart_lua_ffi/generated_bindings.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/types.dart';
 
 final callables = <Function, LuaCallable>{};

@@ -1,10 +1,9 @@
 import 'dart:ffi';
 
-import 'package:dart_luajit_ffi/generated_bindings.dart';
-import 'package:dart_luajit_ffi/macros.dart';
+import 'package:dart_lua_ffi/generated_bindings.dart';
+import 'package:dart_lua_ffi/macros.dart';
 import 'package:target_classic/datatypes.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/functions.dart';
-import 'package:target_classic/plugins/loaders/lua/utility/luaobjects.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/metatables.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/types.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/userdata.dart';

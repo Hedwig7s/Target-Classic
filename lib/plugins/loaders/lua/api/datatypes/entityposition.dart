@@ -1,6 +1,6 @@
 import 'dart:ffi';
 
-import 'package:dart_luajit_ffi/generated_bindings.dart';
+import 'package:dart_lua_ffi/generated_bindings.dart';
 import 'package:target_classic/datatypes.dart';
 import 'package:target_classic/plugins/loaders/lua/api/datatypes/vector3.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/metatables.dart';
@@ -40,7 +40,7 @@ void createEntityPositionMeta(Pointer<lua_State> luaState) =>
       GC_METAMETHOD,
       ("__index", EntityPositionIndex),
       ("__tostring", getToStringMetamethod(Metatables.EntityPosition)),
-      ("__eq", getEqualityMetamethod(Metatables.EntityPosition))
+      ("__eq", getEqualityMetamethod(Metatables.EntityPosition)),
     ]);
 
 int createEntityPosition(

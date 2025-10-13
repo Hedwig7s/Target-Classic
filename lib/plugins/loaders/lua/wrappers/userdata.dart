@@ -1,6 +1,6 @@
 import 'dart:ffi';
 
-import 'package:dart_luajit_ffi/generated_bindings.dart';
+import 'package:dart_lua_ffi/generated_bindings.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/luaerrors.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/metatables.dart';
@@ -85,7 +85,7 @@ void createHandleGCMetatable(Pointer<lua_State> luaState) =>
 }) {
   var userdata =
       lua
-          .lua_newuserdata(luaState, DartDataStruct.getSize(nuvalue))
+          .lua_newuserdatauv(luaState, DartDataStruct.getSize(nuvalue), 0)
           .cast<DartDataStruct>();
   int handle = storeObject(object);
   userdata.ref.nuvalues = nuvalue;

@@ -1,9 +1,9 @@
 import 'dart:ffi';
 import 'dart:io';
 
-import 'package:dart_luajit_ffi/dart_luajit_ffi.dart';
-import 'package:dart_luajit_ffi/generated_bindings.dart';
-import 'package:dart_luajit_ffi/macros.dart';
+import 'package:dart_lua_ffi/dart_lua_ffi.dart';
+import 'package:dart_lua_ffi/generated_bindings.dart';
+import 'package:dart_lua_ffi/macros.dart';
 import 'package:logging/logging.dart';
 import 'package:target_classic/plugins/loaders/lua/api/datatypes/datatypes.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/userdata.dart';
@@ -14,12 +14,12 @@ import 'package:path/path.dart' as p;
 import 'package:ffi/ffi.dart';
 
 const luaLibraryNames = {
-  "windows": "lua51.dll",
-  "macos": "libluajit.dylib",
-  "ios": "libluajit.dylib",
-  "linux": "libluajit.so",
-  "android": "libluajit.so",
-  "fuschia": "libluajit.so",
+  "windows": "lua54.dll",
+  "macos": "liblua5.4.dylib",
+  "ios": "liblua5.4.dylib",
+  "linux": "liblua5.4.so",
+  "android": "liblua5.4.so",
+  "fuschia": "liblua5.4.so",
 };
 
 LuaFFIBind makeLua() {
@@ -53,7 +53,7 @@ int atPanic(Pointer<lua_State> L) {
 }
 
 void setupLuaState(Pointer<lua_State> luaState) {
-  //TODO: Sandboxing and isolates
+  //TODO: Sandboxing and isolatesliblua
   lua.luaL_openlibs(luaState);
   lua.lua_atpanic(
     luaState,
