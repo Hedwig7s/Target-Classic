@@ -49,19 +49,46 @@ class Vector3<T extends num> {
     return Vector3(x - other.x, y - other.y, z - other.z);
   }
 
-  Vector3 operator *(T scalar) {
-    return Vector3(x * scalar, y * scalar, z * scalar);
+  Vector3 operator *(num scalar) {
+    if (scalar is int && this is Vector3I) {
+      return Vector3I(
+        (x * scalar).toInt(),
+        (y * scalar).toInt(),
+        (z * scalar).toInt(),
+      );
+    } else {
+      return Vector3F(
+        (x * scalar).toDouble(),
+        (y * scalar).toDouble(),
+        (z * scalar).toDouble(),
+      );
+    }
   }
 
-  Vector3 operator /(T scalar) {
+  Vector3F operator /(num scalar) {
     if (scalar == 0) {
       throw ArgumentError('Cannot divide by zero');
     }
-    return Vector3(x / scalar, y / scalar, z / scalar);
+    return Vector3F(x / scalar, y / scalar, z / scalar);
   }
 
-  Vector3 operator %(Vector3 other) {
-    return Vector3(x % other.x, y % other.y, z % other.z);
+  Vector3I operator ~/(int scalar) {
+    if (scalar == 0) {
+      throw ArgumentError('Cannot divide by zero');
+    }
+    return Vector3I(
+      (x / scalar).floor(),
+      (y / scalar).floor(),
+      (z / scalar).floor(),
+    );
+  }
+
+  Vector3F operator %(Vector3 other) {
+    return Vector3F(
+      (x % other.x).toDouble(),
+      (y % other.y).toDouble(),
+      (z % other.z).toDouble(),
+    );
   }
 
   Vector3 pow(Vector3 other) {

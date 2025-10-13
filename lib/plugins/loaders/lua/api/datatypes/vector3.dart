@@ -4,6 +4,7 @@ import 'package:dart_lua_ffi/generated_bindings.dart';
 import 'package:dart_lua_ffi/macros.dart';
 import 'package:target_classic/datatypes.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/functions.dart';
+import 'package:target_classic/plugins/loaders/lua/utility/luaobjects.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/metatables.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/types.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/userdata.dart';
@@ -31,6 +32,12 @@ int Vector3Index(Pointer<lua_State> luaState) {
           lua.lua_pushnumber(luaState, value.toDouble());
         }
         return 1;
+      } else if (index == "_type") {
+        lua.lua_pushstring(
+          luaState,
+          vector3.runtimeType.toString().toLuaPointer(arena),
+        );
+        return 1;
       }
       getFromMetatable(luaState, index);
       if (lua.lua_isnil(luaState, -1)) return indexError(luaState, index);
@@ -56,6 +63,12 @@ void createVector3Meta(
   ("__index", Vector3Index),
   ("__tostring", getToStringMetamethod(Metatables.Vector3)),
   ("__eq", getEqualityMetamethod(Metatables.Vector3)),
+  (
+    "__unm",
+    transformVector3(
+      (Vector3 vector3) => Vector3(-vector3.x, -vector3.y, -vector3.z),
+    ),
+  ),
   ("toInt", transformVector3((Vector3 vector3) => vector3.toInt())),
   ("toDouble", transformVector3((Vector3 vector3) => vector3.toDouble())),
   (
@@ -80,11 +93,29 @@ void createVector3Meta(
   ),
   (
     "__mul",
-    calculateOnVector3((Vector3 vector3, int other) => vector3 * other),
+    wrapObjectFunction<Vector3>(Metatables.Vector3, (
+      luaState,
+      userdata,
+      vector3,
+    ) {
+      double scalar = getValue<double>(luaState, 2).$1;
+      int scalarInt = scalar.toInt();
+      if (scalarInt == scalar) {
+        pushValue(luaState, vector3 * scalarInt);
+      } else {
+        pushValue(luaState, vector3 * scalar);
+      }
+      return 1;
+    }),
   ),
+
   (
     "__div",
-    calculateOnVector3((Vector3 vector3, int other) => vector3 / other),
+    calculateOnVector3((Vector3 vector3, double other) => vector3 / other),
+  ),
+  (
+    "__idiv",
+    calculateOnVector3((Vector3 vector3, int other) => vector3 ~/ other),
   ),
   (
     "dot",

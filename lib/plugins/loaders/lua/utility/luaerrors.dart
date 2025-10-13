@@ -1,6 +1,8 @@
 import 'dart:ffi';
 
 import 'package:dart_lua_ffi/generated_bindings.dart';
+import 'package:dart_lua_ffi/macros.dart';
+import 'package:ffi/ffi.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luastring.dart';
 
@@ -22,7 +24,11 @@ int dartErrorToLua(
       "Error forwarded to lua: $error",
       stackTrace,
     );*/
-  return luaError(luaState, "Dart Error: $error\n$stackTrace");
+  lua.luaL_traceback(luaState, luaState, nullptr, 1);
+  return luaError(
+    luaState,
+    "Dart Error: $error\n${stackTrace}Lua Stacktrace: ${lua.lua_tostring(luaState, -1).cast<Utf8>().toDartString()}",
+  );
 }
 
 int indexError(Pointer<lua_State> luaState, String index) =>

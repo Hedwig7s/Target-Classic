@@ -7,6 +7,7 @@ import 'package:dart_lua_ffi/macros.dart';
 import 'package:ffi/ffi.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/luaerrors.dart';
+import 'package:target_classic/plugins/loaders/lua/utility/luaobjects.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/userdata.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luareg.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luastring.dart';
@@ -25,9 +26,10 @@ enum Metatables {
 void createMetatable(
   Pointer<lua_State> luaState,
   String name,
-  List<RegFunction> functions, [
+  List<RegFunction> functions, {
   bool setIndexToSelf = false,
-]) {
+  Map<String, dynamic>? values,
+}) {
   var reg = LuaReg.fromFunctions(functions);
   var metaname = name.toLuaString();
   lua.luaL_newmetatable(luaState, metaname.ptr);
@@ -36,6 +38,15 @@ void createMetatable(
   if (setIndexToSelf) {
     lua.lua_pushvalue(luaState, -1); // copy metatable
     lua.lua_setfield(luaState, -2, "__index".toLuaString().ptr);
+  }
+  if (values != null) {
+    for (var entry in values.entries) {
+      if (!canPush(entry.value)) {
+        throw ArgumentError("Invalid value ${entry.value}");
+      }
+      pushValue(luaState, entry.value);
+      lua.lua_setfield(luaState, -2, entry.key.toLuaString().ptr);
+    }
   }
   lua.lua_pop(luaState, 1);
 }

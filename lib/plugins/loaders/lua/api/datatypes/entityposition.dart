@@ -3,6 +3,7 @@ import 'dart:ffi';
 import 'package:dart_lua_ffi/generated_bindings.dart';
 import 'package:target_classic/datatypes.dart';
 import 'package:target_classic/plugins/loaders/lua/api/datatypes/vector3.dart';
+import 'package:target_classic/plugins/loaders/lua/utility/luaobjects.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/metatables.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/userdata.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
@@ -19,14 +20,15 @@ int EntityPositionIndex(Pointer<lua_State> luaState) {
         Metatables.EntityPosition,
       );
       final map = entityPosition.toMap();
-      if (!map.keys.contains(index)) return indexError(luaState, index);
-      final dynamic value = map[index]!;
-      if (["x", "y", "z"].contains(index)) {
-        lua.lua_pushnumber(luaState, value as double);
-      } else if (["yaw", "pitch"].contains(index)) {
-        lua.lua_pushinteger(luaState, value as int);
-      } else if (index == "vector") {
-        getUserValueFromStack(luaState, 1, 1);
+      final dynamic value = map[index];
+      if (map.containsKey(index)) {
+        pushValue(luaState, value);
+      } else if (index == "_type") {
+        lua.lua_pushstring(
+          luaState,
+          entityPosition.runtimeType.toString().toLuaPointer(arena),
+        );
+        return 1;
       }
       return 1;
     } catch (e, s) {
