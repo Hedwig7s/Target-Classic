@@ -2,7 +2,6 @@
 
 import 'dart:ffi';
 
-import 'package:dart_lua_ffi/generated_bindings.dart';
 import 'package:dart_lua_ffi/macros.dart';
 import 'package:ffi/ffi.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
@@ -24,7 +23,7 @@ enum Metatables {
 }
 
 void createMetatable(
-  Pointer<lua_State> luaState,
+  LuaStateP luaState,
   String name,
   List<RegFunction> functions, {
   bool setIndexToSelf = false,
@@ -52,7 +51,7 @@ void createMetatable(
 }
 
 LuaCallback getToStringMetamethod(Metatables metatable) {
-  return (Pointer<lua_State> luaState) {
+  return (LuaStateP luaState) {
     try {
       var object = getObjectFromStack(luaState, metatable.name, 1);
       final string = object.$2.toString().toLuaString();
@@ -65,7 +64,7 @@ LuaCallback getToStringMetamethod(Metatables metatable) {
 }
 
 LuaCallback getEqualityMetamethod(Metatables metatable) {
-  return (Pointer<lua_State> luaState) {
+  return (LuaStateP luaState) {
     try {
       var object = getObjectFromStack(luaState, metatable.name, 1).$2;
       var other = getObjectFromStack(luaState, null, 2).$2;
@@ -78,14 +77,14 @@ LuaCallback getEqualityMetamethod(Metatables metatable) {
   };
 }
 
-void getFromMetatable(Pointer<lua_State> luaState, String index) {
+void getFromMetatable(LuaStateP luaState, String index) {
   lua.lua_getmetatable(luaState, 1);
   lua.lua_pushstring(luaState, index.toLuaString().ptr);
   lua.lua_gettable(luaState, -2);
 }
 
 (T instance, String index) getIndexData<T>(
-  Pointer<lua_State> luaState,
+  LuaStateP luaState,
   Metatables metatable,
 ) {
   return using((arena) {

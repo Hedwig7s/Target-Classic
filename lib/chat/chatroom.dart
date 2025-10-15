@@ -11,6 +11,7 @@ class Chatroom implements Nameable<String> {
   final Set<Player> players = {};
   @override
   final String name;
+  @override
   final EventEmitter emitter = EventEmitter();
   final Logger logger;
   final Duration cooldownResetTime;

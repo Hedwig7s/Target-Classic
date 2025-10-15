@@ -3,6 +3,7 @@
 /temp
 /worlds
 /main
+/main.exe
 /config
 *.g.dart
 *.freezed.dart

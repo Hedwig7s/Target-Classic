@@ -25,37 +25,37 @@ class DataParserBuilder {
   }
 
   DataParserBuilder littleEndian() {
-    addEntry(new EndiannessEntry(endianness: Endian.little));
+    addEntry(EndiannessEntry(endianness: Endian.little));
     return this;
   }
 
   DataParserBuilder bigEndian() {
-    addEntry(new EndiannessEntry(endianness: Endian.big));
+    addEntry(EndiannessEntry(endianness: Endian.big));
     return this;
   }
 
   DataParserBuilder uint(int size) {
-    addEntry(new EntryInt(size: size, signed: false));
+    addEntry(EntryInt(size: size, signed: false));
     return this;
   }
 
   DataParserBuilder sint(int size) {
-    addEntry(new EntryInt(size: size, signed: true));
+    addEntry(EntryInt(size: size, signed: true));
     return this;
   }
 
   DataParserBuilder float32({bool doublePrecision = false}) {
-    addEntry(new EntryFloat(doublePrecision: doublePrecision));
+    addEntry(EntryFloat(doublePrecision: doublePrecision));
     return this;
   }
 
   DataParserBuilder float64() {
-    addEntry(new EntryFloat(doublePrecision: true));
+    addEntry(EntryFloat(doublePrecision: true));
     return this;
   }
 
   DataParserBuilder boolean({bool signed = false, int size = 1}) {
-    addEntry(new EntryBool(size: size, signed: signed));
+    addEntry(EntryBool(size: size, signed: signed));
     return this;
   }
 
@@ -65,14 +65,14 @@ class DataParserBuilder {
     String? padding,
   }) {
     addEntry(
-      new EntryFixedString(size: size, encoding: encoding, padding: padding),
+      EntryFixedString(size: size, encoding: encoding, padding: padding),
     );
     return this;
   }
 
   DataParserBuilder terminatedString(Encoding encoding, {int? terminator}) {
     addEntry(
-      new EntryTerminatedString(encoding: encoding, terminator: terminator),
+      EntryTerminatedString(encoding: encoding, terminator: terminator),
     );
     return this;
   }
@@ -83,7 +83,7 @@ class DataParserBuilder {
     bool? signed,
   }) {
     addEntry(
-      new EntryLengthPrefixedString(
+      EntryLengthPrefixedString(
         encoding: encoding,
         signed: signed,
         intSize: intSize,
@@ -98,7 +98,7 @@ class DataParserBuilder {
     bool signed = false,
   }) {
     addEntry(
-      new EntryFixedPoint(
+      EntryFixedPoint(
         size: size,
         fractionalBits: fractionalBits,
         signed: signed,
@@ -108,12 +108,12 @@ class DataParserBuilder {
   }
 
   DataParserBuilder bytes(int size) {
-    addEntry(new EntryRaw(size: size));
+    addEntry(EntryRaw(size: size));
     return this;
   }
 
   DataParserBuilder padding(int size) {
-    addEntry(new EntryPadding(size: size));
+    addEntry(EntryPadding(size: size));
     return this;
   }
 

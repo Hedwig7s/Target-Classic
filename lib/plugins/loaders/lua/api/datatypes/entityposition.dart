@@ -1,11 +1,9 @@
-import 'dart:ffi';
-
-import 'package:dart_lua_ffi/generated_bindings.dart';
 import 'package:target_classic/datatypes.dart';
 import 'package:target_classic/plugins/loaders/lua/api/datatypes/vector3.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/functions.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/luaobjects.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/metatables.dart';
+import 'package:target_classic/plugins/loaders/lua/wrappers/types.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/userdata.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/luaerrors.dart';
@@ -13,7 +11,7 @@ import 'package:target_classic/plugins/loaders/lua/wrappers/luareg.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luastring.dart';
 import 'package:ffi/ffi.dart';
 
-int EntityPositionIndex(Pointer<lua_State> luaState) {
+int EntityPositionIndex(LuaStateP luaState) {
   return using((arena) {
     try {
       final (entityPosition, index) = getIndexData<EntityPosition>(
@@ -38,7 +36,7 @@ int EntityPositionIndex(Pointer<lua_State> luaState) {
   });
 }
 
-int Function(Pointer<lua_State> luaState) calculateOnEntityPosition<R, O>(
+LuaCallback calculateOnEntityPosition<R, O>(
   R Function(EntityPosition position, O other) calculateFunction,
 ) => calculateOnObject<EntityPosition, O, R>(
   Metatables.EntityPosition,
@@ -46,7 +44,7 @@ int Function(Pointer<lua_State> luaState) calculateOnEntityPosition<R, O>(
 );
 
 void createEntityPositionMeta(
-  Pointer<lua_State> luaState,
+  LuaStateP luaState,
 ) => createMetatable(luaState, Metatables.EntityPosition.name, [
   GC_METAMETHOD,
   ("__index", EntityPositionIndex),
@@ -85,10 +83,7 @@ void createEntityPositionMeta(
   ),
 ]);
 
-int createEntityPosition(
-  Pointer<lua_State> luaState, [
-  EntityPosition? entityPosition,
-]) {
+int createEntityPosition(LuaStateP luaState, [EntityPosition? entityPosition]) {
   try {
     if (entityPosition == null) {
       List<double> coords = [];
@@ -121,7 +116,7 @@ int createEntityPosition(
   }
 }
 
-int createEntityPositionFromVector3(Pointer<lua_State> luaState) {
+int createEntityPositionFromVector3(LuaStateP luaState) {
   try {
     Vector3F vector3 =
         getObjectFromStack(luaState, Metatables.Vector3.name, 1).$2;
@@ -136,7 +131,7 @@ int createEntityPositionFromVector3(Pointer<lua_State> luaState) {
   }
 }
 
-void addEntityPosition(Pointer<lua_State> luaState) {
+void addEntityPosition(LuaStateP luaState) {
   final reg = LuaReg.fromFunctions([
     ("new", createEntityPosition),
     ("fromVector3", createEntityPositionFromVector3),

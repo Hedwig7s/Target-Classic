@@ -13,6 +13,7 @@ abstract class DataParserEntry {
 }
 
 class EntryInt extends DataParserEntry {
+  @override
   final int size;
   final bool signed;
 
@@ -21,9 +22,9 @@ class EntryInt extends DataParserEntry {
   @override
   void decode(ByteDataReader data, Endian endianness, List out) {
     int value =
-        this.signed
-            ? data.readInt(this.size, endianness)
-            : data.readUint(this.size, endianness);
+        signed
+            ? data.readInt(size, endianness)
+            : data.readUint(size, endianness);
     out.add(value);
   }
 
@@ -33,7 +34,7 @@ class EntryInt extends DataParserEntry {
       throw ArgumentError('Value at index $index must be an integer');
     }
     int value = data[index];
-    if (this.signed) {
+    if (signed) {
       out.writeInt(size, value, endianness);
     } else {
       out.writeUint(size, value, endianness);
@@ -42,6 +43,7 @@ class EntryInt extends DataParserEntry {
 }
 
 class EntryFixedString extends DataParserEntry {
+  @override
   final int size;
   final Encoding encoding;
   final String? padding;
@@ -54,7 +56,7 @@ class EntryFixedString extends DataParserEntry {
     String value = decoder.convert(data.read(size));
     if (padding != null &&
         padding!.isNotEmpty &&
-        value.length > 0 &&
+        value.isNotEmpty &&
         value.endsWith(padding!)) {
       int paddingEnd = value.length;
       for (
@@ -108,9 +110,10 @@ class EntryFixedString extends DataParserEntry {
 class EntryTerminatedString extends DataParserEntry {
   final Encoding encoding;
   final int terminator;
+  @override
   final int? size = null;
   EntryTerminatedString({required this.encoding, int? terminator})
-    : this.terminator = terminator ?? 0,
+    : terminator = terminator ?? 0,
       super();
 
   @override
@@ -127,7 +130,7 @@ class EntryTerminatedString extends DataParserEntry {
     }
     var encoder = encoding.encoder;
     List<int> value = List.from(encoder.convert(data[index]));
-    value.add(this.terminator);
+    value.add(terminator);
     out.write(value);
   }
 }
@@ -136,13 +139,14 @@ class EntryLengthPrefixedString extends DataParserEntry {
   final Encoding encoding;
   final int intSize;
   final bool signed;
+  @override
   final int? size = null;
 
   EntryLengthPrefixedString({
     required this.encoding,
     required this.intSize,
     bool? signed,
-  }) : this.signed = signed ?? false,
+  }) : signed = signed ?? false,
        super();
   @override
   void decode(ByteDataReader data, Endian endianness, List out) {
@@ -175,6 +179,7 @@ class EntryLengthPrefixedString extends DataParserEntry {
 }
 
 class EntryRaw extends DataParserEntry {
+  @override
   final int size;
   final int padding;
 
@@ -207,6 +212,7 @@ class EntryRaw extends DataParserEntry {
 }
 
 class EntryPadding extends DataParserEntry {
+  @override
   final int size;
   final int padding;
 
@@ -220,15 +226,16 @@ class EntryPadding extends DataParserEntry {
 
   @override
   void encode(List data, int index, Endian endianness, ByteDataWriter out) {
-    out.write(List.filled(size, this.padding));
+    out.write(List.filled(size, padding));
   }
 }
 
 class EntryFloat extends DataParserEntry {
   final bool doublePrecision;
+  @override
   final int size;
   EntryFloat({this.doublePrecision = false})
-    : this.size = doublePrecision ? 8 : 4,
+    : size = doublePrecision ? 8 : 4,
       super();
   @override
   void decode(ByteDataReader data, Endian endianness, List out) {
@@ -259,6 +266,7 @@ class EntryFloat extends DataParserEntry {
 }
 
 class EntryBool extends DataParserEntry {
+  @override
   final int size;
   final bool signed;
 
@@ -267,9 +275,9 @@ class EntryBool extends DataParserEntry {
   @override
   void decode(ByteDataReader data, Endian endianness, List out) {
     int value =
-        this.signed
-            ? data.readInt(this.size, endianness)
-            : data.readUint(this.size, endianness);
+        signed
+            ? data.readInt(size, endianness)
+            : data.readUint(size, endianness);
     out.add(value != 0);
   }
 
@@ -279,7 +287,7 @@ class EntryBool extends DataParserEntry {
       throw ArgumentError('Value at index $index must be a boolean');
     }
     int value = data[index] ? 1 : 0;
-    if (this.signed) {
+    if (signed) {
       out.writeInt(size, value, endianness);
     } else {
       out.writeUint(size, value, endianness);
@@ -288,6 +296,7 @@ class EntryBool extends DataParserEntry {
 }
 
 class EntryFixedPoint extends DataParserEntry {
+  @override
   final int size;
   final bool signed;
   final int fractionalBits;
@@ -329,6 +338,7 @@ class EntryFixedPoint extends DataParserEntry {
 }
 
 class EndiannessEntry extends DataParserEntry {
+  @override
   final int size = 0;
   final Endian endianness;
 

@@ -6,6 +6,7 @@ import 'package:target_classic/plugins/loaders/lua/utility/luaerrors.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/metatables.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luareg.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luastring.dart';
+import 'package:target_classic/plugins/loaders/lua/wrappers/types.dart';
 
 class IncorrectTypeError implements Exception {
   String message;
@@ -35,7 +36,7 @@ void removeObject(int handle) {
   _handles.remove(handle);
 }
 
-int handleGCCallback(Pointer<lua_State> L) {
+int handleGCCallback(LuaStateP L) {
   try {
     Pointer<DartDataStruct> ptr =
         lua
@@ -74,11 +75,11 @@ final class DartDataStruct extends Struct {
   }
 }
 
-void createHandleGCMetatable(Pointer<lua_State> luaState) =>
+void createHandleGCMetatable(LuaStateP luaState) =>
     createMetatable(luaState, "handlecleanup", [GC_METAMETHOD]);
 
 (Pointer<DartDataStruct> userdata, int handle) createUserData(
-  Pointer<lua_State> luaState,
+  LuaStateP luaState,
   Object object, {
   int nuvalue = 0,
   String metatable = "handlecleanup",
@@ -108,7 +109,7 @@ void checkUserValueBounds(Pointer<DartDataStruct> userdata, int uservalue) {
 }
 
 void getUserValue(
-  Pointer<lua_State> luaState,
+  LuaStateP luaState,
   Pointer<DartDataStruct> userdata,
   int uservalue,
 ) {
@@ -122,7 +123,7 @@ void getUserValue(
 }
 
 void getUserValueFromStack(
-  Pointer<lua_State> luaState,
+  LuaStateP luaState,
   int userdataIndex,
   int uservalue,
 ) {
@@ -131,7 +132,7 @@ void getUserValueFromStack(
 }
 
 void setUserValue(
-  Pointer<lua_State> luaState,
+  LuaStateP luaState,
   Pointer<DartDataStruct> userdata,
   int uservalue, [
   int valueIndex = -1,
@@ -146,7 +147,7 @@ void setUserValue(
 }
 
 void setUserValueOnStack(
-  Pointer<lua_State> luaState,
+  LuaStateP luaState,
   int userdataIndex,
   int uservalue, [
   int valueIndex = -1,
@@ -156,7 +157,7 @@ void setUserValueOnStack(
 }
 
 Pointer<DartDataStruct> getHandleUserdata(
-  Pointer<lua_State> luaState,
+  LuaStateP luaState,
   String metatable, [
   int valueIndex = 1,
 ]) {
@@ -166,14 +167,14 @@ Pointer<DartDataStruct> getHandleUserdata(
 }
 
 Pointer<DartDataStruct> getHandleUserdataUnchecked(
-  Pointer<lua_State> luaState,
+  LuaStateP luaState,
   int valueIndex,
 ) {
   return lua.lua_touserdata(luaState, valueIndex).cast<DartDataStruct>();
 }
 
 (Pointer<DartDataStruct> userdata, T object) getObjectFromStack<T>(
-  Pointer<lua_State> luaState,
+  LuaStateP luaState,
   String? metatable,
   int valueIndex,
 ) {

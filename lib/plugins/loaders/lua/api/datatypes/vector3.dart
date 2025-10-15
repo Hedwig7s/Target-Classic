@@ -1,6 +1,4 @@
-import 'dart:ffi';
 
-import 'package:dart_lua_ffi/generated_bindings.dart';
 import 'package:dart_lua_ffi/macros.dart';
 import 'package:target_classic/datatypes.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/functions.dart';
@@ -14,7 +12,7 @@ import 'package:target_classic/plugins/loaders/lua/wrappers/luareg.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luastring.dart';
 import 'package:ffi/ffi.dart';
 
-int Vector3Index(Pointer<lua_State> luaState) {
+int Vector3Index(LuaStateP luaState) {
   return using((arena) {
     try {
       final (vector3, index) = getIndexData<Vector3>(
@@ -57,7 +55,7 @@ LuaCallback calculateOnVector3<O, R>(
 ) => calculateOnObject(Metatables.Vector3, calculateFunction);
 
 void createVector3Meta(
-  Pointer<lua_State> luaState,
+  LuaStateP luaState,
 ) => createMetatable(luaState, Metatables.Vector3.name, [
   GC_METAMETHOD,
   ("__index", Vector3Index),
@@ -145,11 +143,7 @@ void createVector3Meta(
   ),
 ]);
 
-int createVector3(
-  Pointer<lua_State> luaState, {
-  bool? isFloat,
-  Vector3? vector3,
-}) {
+int createVector3(LuaStateP luaState, {bool? isFloat, Vector3? vector3}) {
   try {
     if (vector3 != null && isFloat != null) {
       throw Exception("Vector3 can't be provided with an isFloat value");
@@ -178,13 +172,13 @@ int createVector3(
   }
 }
 
-int createVector3I(Pointer<lua_State> luaState) =>
+int createVector3I(LuaStateP luaState) =>
     createVector3(luaState, isFloat: false);
 
-int createVector3F(Pointer<lua_State> luaState) =>
+int createVector3F(LuaStateP luaState) =>
     createVector3(luaState, isFloat: true);
 
-void addVector3(Pointer<lua_State> luaState) {
+void addVector3(LuaStateP luaState) {
   final reg = LuaReg.fromFunctions([
     ("newInt", createVector3I),
     ("newDouble", createVector3F),

@@ -34,12 +34,14 @@ abstract class Protocol {
 
   T assertPacket<T extends Packet>(PacketIds id) {
     Packet? packet = packets[id];
-    if (packet == null)
+    if (packet == null) {
       throw Exception("Packet $id doesn't exist for protocol $version");
-    if (packet is! T)
+    }
+    if (packet is! T) {
       throw Exception(
         "Packet $id is not of the expected type. Expected $T, got ${packet.runtimeType}",
       );
+    }
     return packet;
   }
 

@@ -108,7 +108,7 @@ class DataParser<Key> {
         } catch (e, stackTrace) {
           Error.throwWithStackTrace(
             Exception(
-              "Error encoding entry ${entry.runtimeType.toString()} ${i}: $e",
+              "Error encoding entry ${entry.runtimeType.toString()} $i: $e",
             ),
             stackTrace,
           );

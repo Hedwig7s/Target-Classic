@@ -9,7 +9,7 @@ import '../world.dart';
 import '../datatypes.dart';
 
 class HeaderV2 {
-  static DataParser _parser =
+  static final DataParser _parser =
       DataParserBuilder()
           .littleEndian()
           .uint32() // version
@@ -76,7 +76,7 @@ class HeaderV2 {
 }
 
 class HeaderV4 extends HeaderV2 {
-  static DataParser _parser =
+  static final DataParser _parser =
       DataParserBuilder()
           .littleEndian()
           .uint32() // version
@@ -155,7 +155,7 @@ class HeaderV4 extends HeaderV2 {
 }
 
 class BlockData {
-  static DataParser _parser =
+  static final DataParser _parser =
       DataParserBuilder()
           .littleEndian()
           .uint8() // blockId
@@ -183,6 +183,7 @@ class HWorldFormat extends WorldFormat {
   factory HWorldFormat() {
     return _instance;
   }
+  @override
   List<String> get extensions => ['hworld'];
 
   @override
@@ -191,6 +192,7 @@ class HWorldFormat extends WorldFormat {
         AsciiDecoder().convert(data.sublist(5, 12)) == 'HWORLD';
   }
 
+  @override
   WorldBuilder deserialize(List<int> data) {
     var version = ByteData.sublistView(
       Uint8List.fromList(data),
@@ -241,7 +243,7 @@ class HWorldFormat extends WorldFormat {
     );
 
     if (version >= 3) {
-      ZLibDecoder zlib = new ZLibDecoder();
+      ZLibDecoder zlib = ZLibDecoder();
       extractedBlocks = zlib.convert(extractedBlocks);
     }
 
@@ -271,6 +273,7 @@ class HWorldFormat extends WorldFormat {
     );
   }
 
+  @override
   List<int> serialize(World world) {
     List<int> blockData = [];
     int? currentId;
@@ -296,7 +299,7 @@ class HWorldFormat extends WorldFormat {
       );
     }
 
-    ZLibEncoder zlib = new ZLibEncoder();
+    ZLibEncoder zlib = ZLibEncoder();
     List<int> compressedBlocks = zlib.convert(blockData);
 
     HeaderV4 header = HeaderV4(

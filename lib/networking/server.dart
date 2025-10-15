@@ -29,8 +29,8 @@ class Server {
     }
   }
   void start() async {
-    this.socket = await ServerSocket.bind(this.host, this.port);
-    this.socket!.listen(
+    socket = await ServerSocket.bind(host, port);
+    socket!.listen(
       (Socket socket) {
         if (closed) {
           logger.warning("Server is closed, rejecting connection");
@@ -38,10 +38,10 @@ class Server {
           return;
         }
         String address = socket.remoteAddress.address;
-        logger.info('Connection from ${address}:${socket.remotePort}');
+        logger.info('Connection from $address:${socket.remotePort}');
         Cooldown? cooldown = cooldowns[address];
         if (cooldown != null && !cooldown.canUse()) {
-          logger.warning('Connection from ${address} is on cooldown');
+          logger.warning('Connection from $address is on cooldown');
           socket.close();
           return;
         } else if (cooldown == null) {
@@ -53,7 +53,7 @@ class Server {
         connections[id] = connection;
         emitter.emit("connectionOpened", connection);
         connection.emitter.on("closed", (data) {
-          this.emitter.emit("connectionClosed", connection);
+          emitter.emit("connectionClosed", connection);
         });
       },
       onError: (error) {
@@ -90,6 +90,6 @@ class Server {
     await socket?.close();
     connections.clear();
     emitter.emit("serverStopped");
-    this.cooldowns.clear();
+    cooldowns.clear();
   }
 }

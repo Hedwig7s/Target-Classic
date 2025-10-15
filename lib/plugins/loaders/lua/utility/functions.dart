@@ -1,6 +1,5 @@
 import 'dart:ffi';
 
-import 'package:dart_lua_ffi/generated_bindings.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/luaerrors.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/luaobjects.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/metatables.dart';
@@ -9,14 +8,10 @@ import 'package:target_classic/plugins/loaders/lua/wrappers/userdata.dart';
 
 LuaCallback wrapObjectFunction<T>(
   Metatables metatable,
-  int Function(
-    Pointer<lua_State> luaState,
-    Pointer<DartDataStruct> userdata,
-    T object,
-  )
+  int Function(LuaStateP luaState, Pointer<DartDataStruct> userdata, T object)
   wrappedFunction,
 ) {
-  return (Pointer<lua_State> luaState) {
+  return (LuaStateP luaState) {
     try {
       final (userdata, object) = getObjectFromStack<T>(
         luaState,
@@ -34,7 +29,7 @@ LuaCallback transformObject<T, R>(
   Metatables metatable,
   R Function(T object) transformFunction,
 ) => wrapObjectFunction(metatable, (
-  Pointer<lua_State> luaState,
+  LuaStateP luaState,
   Pointer<DartDataStruct> userdata,
   T object,
 ) {
@@ -46,7 +41,7 @@ LuaCallback calculateOnObject<T, O, R>(
   Metatables metatable,
   R Function(T object, O other) calculateFunction,
 ) => wrapObjectFunction(metatable, (
-  Pointer<lua_State> luaState,
+  LuaStateP luaState,
   Pointer<DartDataStruct> userdata,
   T object,
 ) {

@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:dart_lua_ffi/generated_bindings.dart';
 import 'package:dart_lua_ffi/macros.dart';
 import 'package:ffi/ffi.dart';
@@ -8,9 +6,10 @@ import 'package:target_classic/plugins/loaders/lua/api/datatypes/entityposition.
 import 'package:target_classic/plugins/loaders/lua/api/datatypes/vector3.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luastring.dart';
+import 'package:target_classic/plugins/loaders/lua/wrappers/types.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/userdata.dart';
 
-final _pushers = <Type, void Function(Pointer<lua_State>, dynamic)>{
+final _pushers = <Type, void Function(LuaStateP, dynamic)>{
   String:
       (luaState, value) => lua.lua_pushlstring(
         luaState,
@@ -28,7 +27,7 @@ final _pushers = <Type, void Function(Pointer<lua_State>, dynamic)>{
 
 bool canPush(dynamic value) => _pushers.containsKey(value.runtimeType);
 
-void pushList(Pointer<lua_State> luaState, List list) {
+void pushList(LuaStateP luaState, List list) {
   lua.lua_createtable(luaState, list.length, 0);
   for (int i = 0; i < list.length; i++) {
     if (!pushValue(luaState, list[i])) {
@@ -40,7 +39,7 @@ void pushList(Pointer<lua_State> luaState, List list) {
   }
 }
 
-bool pushValue(Pointer<lua_State> luaState, dynamic value) {
+bool pushValue(LuaStateP luaState, dynamic value) {
   if (value == null) {
     lua.lua_pushnil(luaState);
     return true;
@@ -52,7 +51,7 @@ bool pushValue(Pointer<lua_State> luaState, dynamic value) {
 }
 
 (dynamic value, int type) getValue<ExpectedType>(
-  Pointer<lua_State> luaState,
+  LuaStateP luaState,
   int stackIndex, [
   String? metatable,
 ]) {

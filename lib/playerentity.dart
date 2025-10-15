@@ -14,7 +14,7 @@ class PlayerEntity extends Entity {
     required this.player,
     super.fancyName,
     super.context,
-  }) {}
+  });
 
   @override
   spawn(World world, {calledBack = false}) {

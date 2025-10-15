@@ -5,6 +5,7 @@ import 'packets.dart';
 class Protocol7 extends Protocol {
   @override
   int get version => 7;
+  @override
   Map<PacketIds, Packet> get packets => {
     PacketIds.identification: IdentificationPacket7(),
     PacketIds.ping: PingPacket7(),

@@ -55,11 +55,13 @@ int calculateBlockIndex(Vector3I pos, Vector3I size) {
 }
 
 class World implements Nameable<String> {
+  @override
   final String name;
   final Vector3I size;
   final EntityPosition spawnPoint;
   final Map<int, Entity> entities = {};
   final List<int> blocks;
+  @override
   final EventEmitter emitter = EventEmitter();
   final String? filePath;
   final Logger logger;
@@ -71,8 +73,8 @@ class World implements Nameable<String> {
     this.filePath,
     blocks,
   }) : assert(RegExp(r"^[a-zA-Z0-9]+$").hasMatch(name)),
-       this.logger = Logger('World $name'),
-       this.blocks = blocks ?? List.filled(size.x * size.y * size.z, 0);
+       logger = Logger('World $name'),
+       blocks = blocks ?? List.filled(size.x * size.y * size.z, 0);
 
   static Future<World> fromFile(String filePath, WorldFormat? format) async {
     File file = File(filePath);
@@ -101,9 +103,7 @@ class World implements Nameable<String> {
     }
     WorldBuilder builder = format.deserialize(data);
     builder.filePath = filePath;
-    if (builder.name == null) {
-      builder.name = file.uri.pathSegments.last.split('.').first;
-    }
+    builder.name ??= file.uri.pathSegments.last.split('.').first;
     return builder.build();
   }
 

@@ -10,10 +10,15 @@ abstract class Plugin {
 }
 
 class DynamicPlugin extends Plugin {
+  @override
   final String name;
+  @override
   final String description;
+  @override
   final int version;
+  @override
   final int apiVersion;
+  @override
   final bool autoLoad;
   final Function(Plugin) _load;
   final Function(Plugin) _unload;
@@ -30,11 +35,11 @@ class DynamicPlugin extends Plugin {
        _unload = onUnload;
   @override
   void load(bool startup) {
-    this._load(this);
+    _load(this);
   }
 
   @override
   void unload(bool shutdown) {
-    this._unload(this);
+    _unload(this);
   }
 }

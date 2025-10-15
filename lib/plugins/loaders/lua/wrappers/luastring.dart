@@ -17,9 +17,10 @@ extension LuaPointer on String {
 }
 
 class LuaString {
-  static final ptrFinalizerCallback = (ptr) {
+  static void ptrFinalizerCallback(Pointer ptr) {
     malloc.free(ptr);
-  };
+  }
+
   static final ptrFinalizer = Finalizer<Pointer<Char>>(ptrFinalizerCallback);
 
   late final Pointer<Char> ptr;

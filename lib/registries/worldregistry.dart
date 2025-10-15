@@ -9,7 +9,7 @@ class WorldRegistry extends NamedRegistry<String, World> {
   @protected
   World? _defaultWorld;
   World? get defaultWorld => _defaultWorld;
-  setDefaultWorld(World? item) {
+  void setDefaultWorld(World? item) {
     World? registeredWorld = registry[item?.name];
     if (registeredWorld != item && item != null) {
       register(item); // Duplicate will be detected here
@@ -28,10 +28,12 @@ class WorldRegistry extends NamedRegistry<String, World> {
     Timer.periodic(autosaveInterval, (timer) async {
       if (!shouldAutosave) return;
       List<Future<void>> futures = [];
-      for (World world in this.registry.values) {
+      for (World world in registry.values) {
         futures.add(world.save());
       }
-      for (var future in futures) await future;
+      for (var future in futures) {
+        await future;
+      }
     });
   }
 }

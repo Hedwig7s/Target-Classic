@@ -23,7 +23,7 @@ class PlayerListenedWorldEvents {
   EventListener? entityRemoved;
   EventListener? setBlock;
   Map<Entity, EventListener> entityMovedListeners = {};
-  clear() {
+  void clear() {
     entityAdded?.cancel();
     entityRemoved?.cancel();
     setBlock?.cancel();
@@ -46,6 +46,7 @@ class PlayerCooldowns {
 }
 
 class Player implements Nameable<String> {
+  @override
   final String name;
   String fancyName;
   Connection? connection;
@@ -54,6 +55,7 @@ class Player implements Nameable<String> {
   Chatroom? chatroom;
   World? world;
   bool destroyed = false;
+  @override
   final EventEmitter emitter = EventEmitter();
   final PlayerListenedWorldEvents worldEvents = PlayerListenedWorldEvents();
   final Logger logger;
@@ -227,11 +229,11 @@ class Player implements Nameable<String> {
               positionUpdatePacket != null) {
             EntityPosition? previous;
             int updatesSinceFullSync = 0;
-            const int FULL_SYNC_INTERVAL = 50;
+            const int fullSyncInterval = 50;
 
             onMoved = (EntityPosition position) {
               if (previous == null ||
-                  updatesSinceFullSync >= FULL_SYNC_INTERVAL) {
+                  updatesSinceFullSync >= fullSyncInterval) {
                 sendFullPositionUpdate(position);
                 previous = position;
                 updatesSinceFullSync = 0;

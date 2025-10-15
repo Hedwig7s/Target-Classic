@@ -1,12 +1,10 @@
-import 'dart:ffi';
-
-import 'package:dart_lua_ffi/generated_bindings.dart';
 import 'package:target_classic/plugins/loaders/lua/api/datatypes/entityposition.dart';
 import 'package:target_classic/plugins/loaders/lua/api/datatypes/vector3.dart';
 import 'package:target_classic/plugins/loaders/lua/luaplugin.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luastring.dart';
+import 'package:target_classic/plugins/loaders/lua/wrappers/types.dart';
 
-void registerDataTypes(Pointer<lua_State> luaState) {
+void registerDataTypes(LuaStateP luaState) {
   lua.lua_createtable(luaState, 0, 0);
   addVector3(luaState);
   addEntityPosition(luaState);

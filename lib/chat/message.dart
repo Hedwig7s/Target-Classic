@@ -11,8 +11,9 @@ class Message {
   }
 
   static String sanitize(String message) {
-    if (message.isNotEmpty && message[message.length - 1] == '&')
+    if (message.isNotEmpty && message[message.length - 1] == '&') {
       message = message.substring(0, message.length - 1);
+    }
 
     return message.replaceAllMapped(
       RegExp('[\x00-\x1F\x7F-\xFF]'),
@@ -63,15 +64,16 @@ class Message {
     void checkWord(bool addPrefix) {
       if (currentLength +
               currentWord.length +
-              (currentPart.length == 0 ? 0 : 1) <=
+              (currentPart.isEmpty ? 0 : 1) <=
           getMaxPartLength(addPrefix)) {
         addWord();
       }
     }
 
     void trimColor(bool wasColor) {
-      if (wasColor)
+      if (wasColor) {
         currentWord = currentWord.sublist(0, currentWord.length - 2);
+      }
     }
 
     void handleSplit(String char, bool wasColor) {
@@ -122,14 +124,14 @@ class Message {
 
   @override
   bool operator ==(Object other) {
-    return other is Message && this.message == other.message;
+    return other is Message && message == other.message;
   }
 
   Message operator +(Object other) {
     if (other is String) {
-      return Message(this.message + other);
+      return Message(message + other);
     } else if (other is Message) {
-      return Message(this.message + other.message);
+      return Message(message + other.message);
     }
     throw ArgumentError("Cannot add Message and ${other.runtimeType}");
   }

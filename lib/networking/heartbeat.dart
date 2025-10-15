@@ -50,8 +50,9 @@ class SaltManager {
         int byte = random.nextInt(256 - 48) + 48;
         if (!isValidSaltChar(byte)) {
           continue;
-        } else
+        } else {
           return byte;
+        }
       }
     });
     return ascii.decode(bytes);
@@ -111,8 +112,9 @@ class SaltManager {
     }
     String timestamp = data[1];
     if (DateTime.now().toUtc().difference(DateTime.parse(timestamp)).inMinutes >
-        5)
+        5) {
       return null;
+    }
     return salt;
   }
 
@@ -200,7 +202,7 @@ class Heartbeat {
   void start() {
     active = true;
     saltManager.startSaltSaver();
-    final callback = (Timer timer) async {
+    callback(Timer timer) async {
       if (!active) {
         timer.cancel();
         return;
@@ -215,7 +217,7 @@ class Heartbeat {
         software: "$SOFTWARE_NAME $SOFTWARE_VERSION",
       );
       await send(info);
-    };
+    }
     _timer = Timer.periodic(interval, callback);
     callback.call(_timer!);
   }

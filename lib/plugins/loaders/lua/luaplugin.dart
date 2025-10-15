@@ -6,6 +6,7 @@ import 'package:dart_lua_ffi/generated_bindings.dart';
 import 'package:dart_lua_ffi/macros.dart';
 import 'package:logging/logging.dart';
 import 'package:target_classic/plugins/loaders/lua/api/datatypes/datatypes.dart';
+import 'package:target_classic/plugins/loaders/lua/wrappers/types.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/userdata.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/luastring.dart';
 import 'package:target_classic/plugins/loaders/pluginloader.dart';
@@ -46,18 +47,18 @@ LuaFFIBind? tryMakeLua() {
 LuaFFIBind? get luaOptional => _lua ?? tryMakeLua();
 
 LuaFFIBind get lua => _lua!;
-int atPanic(Pointer<lua_State> L) {
+int atPanic(LuaStateP L) {
   final msg = lua.lua_tostring(L, -1).cast<Utf8>().toDartString();
   Logger.root.severe("Lua panic: $msg");
   return 0;
 }
 
-void setupLuaState(Pointer<lua_State> luaState) {
+void setupLuaState(LuaStateP luaState) {
   //TODO: Sandboxing and isolates
   lua.luaL_openlibs(luaState);
   lua.lua_atpanic(
     luaState,
-    Pointer.fromFunction<Int Function(Pointer<lua_State>)>(atPanic, 0),
+    Pointer.fromFunction<LuaNativeCallback>(atPanic, 0),
   );
   createHandleGCMetatable(luaState);
   lua.lua_createtable(luaState, 0, 0);
@@ -67,7 +68,7 @@ void setupLuaState(Pointer<lua_State> luaState) {
 
 class LuaPluginLoader implements PluginLoader {
   final String filePath;
-  Pointer<lua_State>? luaState;
+  LuaStateP? luaState;
   @override
   bool loaded = false;
   @override

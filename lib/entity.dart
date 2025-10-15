@@ -12,9 +12,11 @@ abstract class Entity implements IRRegisterable {
   EntityPosition _position = EntityPosition(0, 0, 0, 0, 0);
   EntityPosition get position => _position;
   World? world;
+  @override
   final Map<IncrementalRegistry, int> ids = {};
   final String name;
   final String fancyName;
+  @override
   final emitter = EventEmitter();
   final Logger logger;
   final ServerContext? context;
@@ -27,28 +29,28 @@ abstract class Entity implements IRRegisterable {
     context?.entityRegistry?.register(this);
   }
 
-  spawn(World world) {
+  void spawn(World world) {
     if (this.world != null) {
       despawn();
     }
     this.world = world;
     world.addEntity(this);
-    this._position = world.spawnPoint;
+    _position = world.spawnPoint;
     emitter.emit('spawned');
   }
 
-  move(EntityPosition newPosition) {
+  void move(EntityPosition newPosition) {
     _position = newPosition;
     emitter.emit('moved', newPosition);
   }
 
-  despawn() {
-    this.world?.removeEntity(this);
+  void despawn() {
+    world?.removeEntity(this);
     emitter.emit("despawn");
   }
 
-  destroy() {
-    if (this.world != null) {
+  void destroy() {
+    if (world != null) {
       despawn();
     }
     emitter.emit('destroyed');

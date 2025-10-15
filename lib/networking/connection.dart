@@ -82,7 +82,7 @@ class Connection {
         close();
       },
       onError: (error) {
-        this.onError(error);
+        onError(error);
       },
     );
   }
@@ -90,17 +90,17 @@ class Connection {
     if (processingIncoming) return;
     processingIncoming = true;
     try {
-      while (buffer.length > 0) {
+      while (buffer.isNotEmpty) {
         int id = buffer[0];
         if (id < 0 || id >= PacketIds.values.length) {
           logger.warning('Invalid packet id: $id');
-          this.close();
+          close();
           return;
         }
         PacketIds packetId = PacketIds.values[id];
         if (protocol == null && packetId != PacketIds.identification) {
           logger.warning('Protocol not set, closing connection');
-          this.close();
+          close();
           return;
         }
         if (protocol == null && packetId == PacketIds.identification) {
@@ -112,7 +112,7 @@ class Connection {
           Protocol? protocol = protocols[protocolVersion];
           if (protocol == null) {
             logger.warning('Invalid protocol version: $protocolVersion');
-            this.close();
+            close();
             return;
           }
           this.protocol = protocol;
@@ -120,12 +120,12 @@ class Connection {
         Packet? packet = protocol!.packets[packetId];
         if (packet == null) {
           logger.warning('Invalid packet id: $packetId');
-          this.close("Invalid packet: Unknown packet id: $packetId");
+          close("Invalid packet: Unknown packet id: $packetId");
           return;
         }
         if (!packetCooldown.canUse()) {
           logger.warning("Too many packets!");
-          this.close("Too many packets!");
+          close("Too many packets!");
         }
         if (buffer.length < packet.length) {
           break; // Not enough data for the packet
@@ -134,8 +134,8 @@ class Connection {
         buffer = buffer.sublist(packet.length);
         if (packet is! ReceivablePacket) {
           logger.warning('Packet is not receivable: $packet');
-          this.close(
-            "Invalid packet: Packet ${id} cannot be sent to the server.",
+          close(
+            "Invalid packet: Packet $id cannot be sent to the server.",
           );
           return;
         }
@@ -144,13 +144,13 @@ class Connection {
       }
     } catch (e, stackTrace) {
       logger.warning('Error processing incoming data\n$e\n$stackTrace');
-      this.close("Internal error while processing incoming data.");
+      close("Internal error while processing incoming data.");
     } finally {
       processingIncoming = false;
     }
   }
 
-  write(List<int> data, {bool force = false}) {
+  void write(List<int> data, {bool force = false}) {
     if ((closed && !force) || (force && socketClosed)) return;
     try {
       socket.add(data);
@@ -159,14 +159,14 @@ class Connection {
     }
   }
 
-  onError(error) {
+  void onError(error) {
     logger.warning('Error: $error');
     if (closed) return;
-    this.close("An internal error occurred");
+    close("An internal error occurred");
   }
 
   Future<void>? close([
-    String? reason = null,
+    String? reason,
     Duration receiveReasonDelay = const Duration(milliseconds: 50),
   ]) {
     try {
