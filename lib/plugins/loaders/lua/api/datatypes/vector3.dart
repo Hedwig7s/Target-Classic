@@ -85,11 +85,11 @@ void createVector3Meta(
   ),
   (
     "__mod",
-    calculateOnVector3((Vector3 vector3, Vector3 other) => vector3 % other),
+    calculateOnVector3((Vector3 vector3, double scalar) => vector3 % scalar),
   ),
   (
     "__pow",
-    calculateOnVector3((Vector3 vector3, Vector3 other) => vector3.pow(other)),
+    calculateOnVector3((Vector3 vector3, double scalar) => vector3.pow(scalar)),
   ),
   (
     "__mul",
@@ -122,7 +122,7 @@ void createVector3Meta(
     calculateOnVector3((Vector3 vector3, Vector3 other) => vector3.dot(other)),
   ),
   (
-    "magnitude",
+    "__len",
     wrapObjectFunction<Vector3>(Metatables.Vector3, (
       luaState,
       userdata,

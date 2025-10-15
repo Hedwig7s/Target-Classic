@@ -3,6 +3,7 @@ import 'dart:ffi';
 import 'package:dart_lua_ffi/generated_bindings.dart';
 import 'package:target_classic/datatypes.dart';
 import 'package:target_classic/plugins/loaders/lua/api/datatypes/vector3.dart';
+import 'package:target_classic/plugins/loaders/lua/utility/functions.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/luaobjects.dart';
 import 'package:target_classic/plugins/loaders/lua/utility/metatables.dart';
 import 'package:target_classic/plugins/loaders/lua/wrappers/userdata.dart';
@@ -37,13 +38,52 @@ int EntityPositionIndex(Pointer<lua_State> luaState) {
   });
 }
 
-void createEntityPositionMeta(Pointer<lua_State> luaState) =>
-    createMetatable(luaState, Metatables.EntityPosition.name, [
-      GC_METAMETHOD,
-      ("__index", EntityPositionIndex),
-      ("__tostring", getToStringMetamethod(Metatables.EntityPosition)),
-      ("__eq", getEqualityMetamethod(Metatables.EntityPosition)),
-    ]);
+int Function(Pointer<lua_State> luaState) calculateOnEntityPosition<R, O>(
+  R Function(EntityPosition position, O other) calculateFunction,
+) => calculateOnObject<EntityPosition, O, R>(
+  Metatables.EntityPosition,
+  calculateFunction,
+);
+
+void createEntityPositionMeta(
+  Pointer<lua_State> luaState,
+) => createMetatable(luaState, Metatables.EntityPosition.name, [
+  GC_METAMETHOD,
+  ("__index", EntityPositionIndex),
+  ("__tostring", getToStringMetamethod(Metatables.EntityPosition)),
+  ("__eq", getEqualityMetamethod(Metatables.EntityPosition)),
+  (
+    "toClientCoordinates",
+    transformObject(
+      Metatables.EntityPosition,
+      (EntityPosition entityPosition) => entityPosition.toClientCoordinates(),
+    ),
+  ),
+  (
+    "__add",
+    calculateOnEntityPosition(
+      (position, EntityPosition other) => position + other,
+    ),
+  ),
+  (
+    "__sub",
+    calculateOnEntityPosition(
+      (position, EntityPosition other) => position - other,
+    ),
+  ),
+  (
+    "__mul",
+    calculateOnEntityPosition((position, double scalar) => position * scalar),
+  ),
+  (
+    "__div",
+    calculateOnEntityPosition((position, double scalar) => position / scalar),
+  ),
+  (
+    "__idiv",
+    calculateOnEntityPosition((position, int scalar) => position ~/ scalar),
+  ),
+]);
 
 int createEntityPosition(
   Pointer<lua_State> luaState, [
@@ -81,8 +121,26 @@ int createEntityPosition(
   }
 }
 
+int createEntityPositionFromVector3(Pointer<lua_State> luaState) {
+  try {
+    Vector3F vector3 =
+        getObjectFromStack(luaState, Metatables.Vector3.name, 1).$2;
+    int yaw = lua.luaL_checkinteger(luaState, 2);
+    int pitch = lua.luaL_checkinteger(luaState, 3);
+    return createEntityPosition(
+      luaState,
+      EntityPosition.fromVector3(vector: vector3, yaw: yaw, pitch: pitch),
+    );
+  } catch (e, s) {
+    return dartErrorToLua(luaState, e, s);
+  }
+}
+
 void addEntityPosition(Pointer<lua_State> luaState) {
-  final reg = LuaReg.fromFunctions([("new", createEntityPosition)]);
+  final reg = LuaReg.fromFunctions([
+    ("new", createEntityPosition),
+    ("fromVector3", createEntityPositionFromVector3),
+  ]);
   createEntityPositionMeta(luaState);
   lua.lua_createtable(luaState, 0, 0);
   lua.luaL_setfuncs(luaState, reg.ptr, 0);

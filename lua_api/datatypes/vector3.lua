@@ -1,16 +1,41 @@
 ---@meta Vector3
 
----@generic T : number|integer
----@alias Vector3<T> { 
+---@generic T: number|integer
+---@class Vector3: DartObject, { 
 ---    x: T, 
 ---    y: T, 
----    z: T, 
----    toDouble: fun(self: Vector3<T>): (Vector3<number>),
----    toInt: fun(self: Vector3<T>): (Vector3<integer>)}
+---    z: T}
+---@operator add(Vector3<number|integer>): Vector3<number|integer>
+---@operator sub(Vector3<number|integer>): Vector3<number|integer>
+---@operator mod(number): Vector3<number>
+---@operator mul(number): Vector3<number|integer>
+---@operator div(number): Vector3<number>
+---@operator idiv(integer): Vector3<integer>
+---@operator pow(number): Vector3<number|integer>
+---@operator len: number
+local Vector3 = {}
 
+---@param self Vector3<number|integer>
+---@param other Vector3<number|integer>
+---@return Vector3<number|integer>
+function Vector3:dot(other) end
+
+---@param self Vector3<number|integer>
+---@return number
+function Vector3:magnitude() end
+
+---@param self Vector3<string|integer>
+---@return Vector3<number>
+---Converts the Vector3 to a number Vector3
+function Vector3:toDouble() end
+
+---@param self Vector3<string|integer>
+---@return Vector3<integer>
+---Converts the Vector3 to an integer Vector3, rounding down if necessary
+function Vector3:toInt() end
 
 ---@class Classic.DataTypes.Vector3
-local Vector3 = {
+local CVector3 = {
     ---Creates a Vector3 for integers
     ---@param x integer
     ---@param y integer
@@ -26,4 +51,4 @@ local Vector3 = {
 }
 
 
-Classic.DataTypes.Vector3 = Vector3
+Classic.DataTypes.Vector3 = CVector3

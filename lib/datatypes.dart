@@ -83,19 +83,19 @@ class Vector3<T extends num> {
     );
   }
 
-  Vector3F operator %(Vector3 other) {
+  Vector3F operator %(num scalar) {
     return Vector3F(
-      (x % other.x).toDouble(),
-      (y % other.y).toDouble(),
-      (z % other.z).toDouble(),
+      (x % scalar).toDouble(),
+      (y % scalar).toDouble(),
+      (z % scalar).toDouble(),
     );
   }
 
-  Vector3 pow(Vector3 other) {
+  Vector3 pow(num scalar) {
     return Vector3(
-      math.pow(x, other.x),
-      math.pow(y, other.y),
-      math.pow(z, other.z),
+      math.pow(x, scalar),
+      math.pow(y, scalar),
+      math.pow(z, scalar),
     );
   }
 
@@ -127,13 +127,16 @@ class EntityPosition {
   final int yaw;
   final int pitch;
 
-  EntityPosition(double x, double y, double z, this.yaw, this.pitch)
-    : vector = Vector3<double>(x, y, z);
+  EntityPosition(double x, double y, double z, int yaw, int pitch)
+    : vector = Vector3<double>(x, y, z),
+      yaw = yaw % 193,
+      pitch = pitch % 256;
   EntityPosition.fromVector3({
     required this.vector,
-    required this.yaw,
-    required this.pitch,
-  });
+    required int yaw,
+    required int pitch,
+  }) : yaw = yaw % 193,
+       pitch = pitch % 256;
 
   Map<String, dynamic> toMap() {
     return {
@@ -193,6 +196,17 @@ class EntityPosition {
     }
     return EntityPosition.fromVector3(
       vector: (vector / scalar).toDouble(),
+      yaw: yaw,
+      pitch: pitch,
+    );
+  }
+
+  EntityPosition operator ~/(int scalar) {
+    if (scalar == 0) {
+      throw ArgumentError('Cannot divide by zero');
+    }
+    return EntityPosition.fromVector3(
+      vector: (vector ~/ scalar).toDouble(),
       yaw: yaw,
       pitch: pitch,
     );

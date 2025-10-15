@@ -53,7 +53,7 @@ int atPanic(Pointer<lua_State> L) {
 }
 
 void setupLuaState(Pointer<lua_State> luaState) {
-  //TODO: Sandboxing and isolatesliblua
+  //TODO: Sandboxing and isolates
   lua.luaL_openlibs(luaState);
   lua.lua_atpanic(
     luaState,
