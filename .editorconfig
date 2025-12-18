@@ -1,0 +1,3 @@
+[*.dart]
+indent_size = 2
+trim_trailing_whitespace = true

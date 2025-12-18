@@ -15,7 +15,6 @@ import 'package:target_classic/networking/server.dart';
 import 'package:target_classic/player.dart';
 import 'package:target_classic/registries/commandregistry.dart';
 import 'package:target_classic/registries/incrementalregistry.dart';
-import 'package:target_classic/registries/pluginregistry.dart';
 import 'package:target_classic/world.dart';
 import 'package:target_classic/worldformats/hworld.dart';
 import 'package:target_classic/registries/namedregistry.dart';
@@ -33,7 +32,6 @@ class ServerContext {
   Server? server;
   SaltManager? saltManager;
   Heartbeat? heartbeat;
-  PluginRegistry? pluginRegistry;
   CommandRegistry? commandRegistry;
 
   static Future<ServerContext> defaultContext() async {
@@ -94,7 +92,6 @@ class ServerContext {
       context: context,
     );
     context.commandRegistry = CommandRegistry();
-    context.pluginRegistry = PluginRegistry();
 
     return context;
   }

@@ -13,11 +13,7 @@ class Vector3<T extends num> {
   String toString() {
     return 'Vector3(x: $x, y: $y, z: $z)';
   }
-
-  Map<String, T> toMap() {
-    return {"x": x, "y": y, "z": z};
-  }
-
+  
   Vector3<int> toInt() {
     return Vector3<int>(x.toInt(), y.toInt(), z.toInt());
   }
@@ -137,17 +133,6 @@ class EntityPosition {
     required int pitch,
   }) : yaw = yaw % 193,
        pitch = pitch % 256;
-
-  Map<String, dynamic> toMap() {
-    return {
-      "x": x,
-      "y": y,
-      "z": z,
-      "vector": vector,
-      "yaw": yaw,
-      "pitch": pitch,
-    };
-  }
 
   EntityPosition toClientCoordinates([bool isSelf = false]) {
     return EntityPosition.fromVector3(

@@ -48,7 +48,6 @@ void main() async {
   });
   ServerContext context = await ServerContext.defaultContext();
   registerBuiltinCommands(context);
-  await context.pluginRegistry!.loadAllInDir("./plugins");
   Server server = context.server!;
   server.start();
   Logger.root.info("Server started on ${server.host}:${server.port}");
