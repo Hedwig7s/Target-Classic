@@ -337,9 +337,8 @@ class EntityParameter extends Parameter {
   EntityParameter(super.name, [super.optional]);
   @override
   CommandContext parse(CommandContext context) {
-    var entityRegistry = context.serverContext?.entityRegistry;
-    if (entityRegistry == null)
-      throw CommandStateException("No entity registry present.");
+    var entityRegistry = context.serverContext.registries.entityRegistry;
+
     var args = context.args;
     var out = context.parsedValues;
     int id = _assertInt(args);
@@ -355,9 +354,7 @@ class PlayerParameter extends Parameter {
   PlayerParameter(super.name, [super.optional]);
   @override
   CommandContext parse(CommandContext context) {
-    var playerRegistry = context.serverContext?.playerRegistry;
-    if (playerRegistry == null)
-      throw CommandStateException("No player registry present.");
+    var playerRegistry = context.serverContext.registries.playerRegistry;
     var args = context.args;
     var out = context.parsedValues;
     String name = args.removeAt(0);
@@ -374,9 +371,7 @@ class WorldParameter extends Parameter {
   WorldParameter(super.name, [super.optional]);
   @override
   CommandContext parse(CommandContext context) {
-    var worldRegistry = context.serverContext?.worldRegistry;
-    if (worldRegistry == null)
-      throw CommandStateException("No world registry present.");
+    var worldRegistry = context.serverContext.registries.worldRegistry;
     var args = context.args;
     var out = context.parsedValues;
     String name = args.removeAt(0);

@@ -12,10 +12,8 @@ void registerListEntities(ServerContext serverContext) {
       CommandContext context,
       List<dynamic> args,
     ) {
-      if (context.serverContext?.entityRegistry == null) {
-        throw CommandStateException("No entity registry present");
-      }
-      var entityRegistry = context.serverContext!.entityRegistry!;
+
+      var entityRegistry = context.serverContext.registries.entityRegistry;
       for (int i = 0; i < entityRegistry.length; i++) {
         var entity = entityRegistry.get(i)!;
         context.player.sendMessage(
@@ -25,5 +23,5 @@ void registerListEntities(ServerContext serverContext) {
       }
     }),
   );
-  serverContext.commandRegistry?.register(command);
+  serverContext.registries.commandRegistry.register(command);
 }

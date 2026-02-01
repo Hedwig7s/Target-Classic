@@ -39,7 +39,7 @@ class CommandCallerHasNoEntityException extends CommandStateException {
 class CommandContext {
   final String rawCommand;
   final List<String> startingArgs;
-  final ServerContext? serverContext;
+  final ServerContext serverContext;
   final Entity? entity;
   final Player player;
   int argIndex = 0;
@@ -48,13 +48,13 @@ class CommandContext {
   List<dynamic> parsedValues;
 
   CommandContext({
-    this.serverContext,
-    this.entity,
+    required this.serverContext,
     required this.player,
-    List<dynamic>? out,
-    List<String>? args,
     required this.rawCommand,
     required this.startingArgs,
+    this.entity,
+    List<dynamic>? out,
+    List<String>? args,
   }) : args = args ?? List.from(startingArgs),
        parsedValues = out ?? [];
   CommandContext clone() {

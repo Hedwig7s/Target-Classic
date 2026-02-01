@@ -65,15 +65,13 @@ void main() async {
       "Server shutting down...",
     ); // TODO: If commands are implemented, move shutdown to a seperate function
     await server.stop();
-    var worlds = context.worldRegistry?.getAll();
-    if (worlds != null) {
-      var futures = <Future>[];
-      for (var world in worlds) {
-        futures.add(world.save());
-      }
-      for (var future in futures) {
-        await future;
-      }
+    var worlds = context.registries.worldRegistry.getAll();
+    var futures = <Future>[];
+    for (var world in worlds) {
+      futures.add(world.save());
+    }
+    for (var future in futures) {
+      await future;
     }
     if (context.heartbeat?.saltManager != null) {
       context.heartbeat!.saltManager.stopSaltSaver();

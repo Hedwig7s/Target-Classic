@@ -38,6 +38,9 @@ class CommandRegistry {
     required Player player,
     Entity? entity,
   }) {
+    if (player.context == null) {
+      throw Exception("Player context required for commands!");
+    }
     List<String> args = rawCommand.substring(1).split(" ");
     String alias = args[0];
     Command? command = getCommand(alias);
@@ -52,7 +55,7 @@ class CommandRegistry {
       rawCommand: rawCommand,
       startingArgs: args,
       entity: entity ?? player.entity,
-      serverContext: player.context,
+      serverContext: player.context!,
     );
     try {
       command.execute(context);

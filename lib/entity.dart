@@ -26,7 +26,7 @@ abstract class Entity implements IRRegisterable {
   Entity({required this.name, fancyName, this.context})
     : logger = Logger("Entity $name"),
       fancyName = fancyName ?? name {
-    context?.entityRegistry?.register(this);
+    context?.registries.entityRegistry.register(this);
   }
 
   void spawn(World world) {

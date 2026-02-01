@@ -61,7 +61,7 @@ class IdentificationPacket7 extends Packet
   @override
   Future<void> receive(Connection connection, List<int> data) async {
     ServerContext? context = connection.context;
-    ServerConfig? serverConfig = context?.serverConfig;
+    ServerConfig? serverConfig = context?.configuration.serverConfig;
     IdentificationPacketData decodedData = decode(data);
     if (decodedData.name
         .replaceAllMapped(RegExp('[\x00-\x1F\x7F-\xFF]'), (match) => '')
@@ -80,7 +80,7 @@ class IdentificationPacket7 extends Packet
       connection.close("Invalid mppass");
       return;
     }
-    PlayerRegistry? playerRegistry = context?.playerRegistry;
+    PlayerRegistry? playerRegistry = context?.registries.playerRegistry;
     if (playerRegistry == null) {
       connection.logger.warning("No player registry found!");
     }
@@ -98,9 +98,10 @@ class IdentificationPacket7 extends Packet
       );
     }
 
-    if (context?.serverConfig?.maxPlayers != null &&
+    if (context?.configuration.serverConfig.maxPlayers != null &&
         playerRegistry != null &&
-        playerRegistry.length >= context!.serverConfig!.maxPlayers) {
+        playerRegistry.length >=
+            context!.configuration.serverConfig.maxPlayers) {
       connection.logger.warning(
         "Server is full, cannot identify player ${decodedData.name}",
       );
@@ -127,7 +128,7 @@ class IdentificationPacket7 extends Packet
       connection.close("Error occurred during identification");
       return;
     }
-    World? world = context?.worldRegistry?.defaultWorld;
+    World? world = context?.registries.worldRegistry.defaultWorld;
     if (world != null) {
       await player.loadWorld(world);
       player.spawn();
@@ -628,7 +629,7 @@ class MessagePacket7 extends Packet
     String message = decodedData.message.trim();
     if (message.startsWith("/")) {
       // TODO: Move elsewhere when console added
-      connection.context?.commandRegistry?.dispatch(
+      connection.context?.registries.commandRegistry.dispatch(
         rawCommand: message,
         player: player,
       );

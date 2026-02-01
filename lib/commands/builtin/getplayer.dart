@@ -23,5 +23,5 @@ void registerGetPlayer(ServerContext serverContext) {
           as ParameterParser,
     ),
   );
-  serverContext.commandRegistry?.register(command);
+  serverContext.registries.commandRegistry.register(command);
 }

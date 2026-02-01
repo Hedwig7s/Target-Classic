@@ -72,5 +72,5 @@ void registerTeleport(ServerContext serverContext) {
     permission: "teleport",
     root: rootNode,
   );
-  serverContext.commandRegistry?.register(command);
+  serverContext.registries.commandRegistry.register(command);
 }

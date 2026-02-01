@@ -93,7 +93,7 @@ class Player implements Nameable<String> {
           PacketIds.identification,
         );
     String serverName = "Name not set", motd = "Motd not set";
-    ServerConfig? config = context?.serverConfig;
+    ServerConfig? config = context?.configuration.serverConfig;
     if (config != null) {
       serverName = config.serverName;
       motd = config.motd;
@@ -184,7 +184,7 @@ class Player implements Nameable<String> {
 
         entity.spawnFor(connection!);
 
-        var serverConfig = context?.serverConfig;
+        var serverConfig = context?.configuration.serverConfig;
         bool useRelativeMovements = serverConfig?.useRelativeMovements ?? false;
 
         var setPositionPacket = connection!.protocol

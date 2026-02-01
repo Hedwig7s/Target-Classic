@@ -23,41 +23,58 @@ import 'package:target_classic/registries/worldregistry.dart';
 typedef PlayerRegistry = NamedRegistry<String, Player>;
 typedef EntityRegistry = IncrementalRegistry<Entity>;
 
+class ServerConfiguration {
+  final ServerConfig serverConfig;
+  ServerConfiguration({required this.serverConfig});
+}
+
+class ServerRegistries {
+  // FIXME: Quite verbose, maybe find a macro or build tool?
+  final PlayerRegistry playerRegistry;
+  final EntityRegistry entityRegistry;
+  final WorldRegistry worldRegistry;
+  final CommandRegistry commandRegistry;
+  ServerRegistries({
+    PlayerRegistry? playerRegistry,
+    EntityRegistry? entityRegistry,
+    WorldRegistry? worldRegistry,
+    CommandRegistry? commandRegistry,
+  }) : playerRegistry = playerRegistry ?? PlayerRegistry(),
+       entityRegistry = entityRegistry ?? EntityRegistry(),
+       worldRegistry = worldRegistry ?? WorldRegistry(),
+       commandRegistry = commandRegistry ?? CommandRegistry();
+}
+
 class ServerContext {
-  ServerConfig? serverConfig;
-  PlayerRegistry? playerRegistry;
-  EntityRegistry? entityRegistry;
-  WorldRegistry? worldRegistry;
-  Chatroom? defaultChatroom;
+  Chatroom? defaultChatroom; // FIXME: Consider making final
   Server? server;
   SaltManager? saltManager;
   Heartbeat? heartbeat;
-  CommandRegistry? commandRegistry;
+  final ServerConfiguration configuration;
+  final ServerRegistries registries;
+
+  ServerContext({
+    required this.configuration,
+    ServerRegistries? registries,
+    this.defaultChatroom,
+    this.server,
+    this.saltManager,
+    this.heartbeat,
+  }) : registries = registries ?? ServerRegistries();
 
   static Future<ServerContext> defaultContext() async {
-    ServerContext context = ServerContext();
+    late final ServerConfiguration configuration;
     try {
-      context.serverConfig = await ServerConfig.loadFromFile();
+      // FIXME: Needs redesigning for new config files
+      configuration = ServerConfiguration(
+        serverConfig: await ServerConfig.loadFromFile(),
+      );
     } catch (e) {
       Logger.root.warning("Failed to load config: $e");
-      context.serverConfig = ServerConfig();
+      configuration = ServerConfiguration(serverConfig: ServerConfig());
     }
-    context.serverConfig!.saveToFile();
-
-    context.saltManager = await SaltManager.tryFromFile();
-    context.saltManager?.cacheSalt();
-
-    context.entityRegistry = EntityRegistry();
-    context.playerRegistry = PlayerRegistry();
-
-    context.heartbeat = Heartbeat(
-      heartbeatUrl: context.serverConfig!.heartbeatUrl,
-      serverConfig: context.serverConfig!,
-      salt: context.saltManager!.salt,
-      playerRegistry: context.playerRegistry!,
-    );
-
-    context.worldRegistry = WorldRegistry();
+    configuration.serverConfig.saveToFile();
+    final registries = ServerRegistries();
     late final World defaultWorld;
     try {
       defaultWorld = await World.fromFile(
@@ -75,11 +92,25 @@ class ServerContext {
       }
       defaultWorld = World.superflat("world", Vector3I(128, 128, 128));
     }
-    context.worldRegistry!.setDefaultWorld(defaultWorld);
+    registries.worldRegistry.setDefaultWorld(defaultWorld);
+    final SaltManager saltManager = await SaltManager.tryFromFile();
+    saltManager.cacheSalt();
 
-    context.defaultChatroom = Chatroom(name: "default");
+    final Heartbeat heartbeat = Heartbeat(
+      heartbeatUrl: configuration.serverConfig.heartbeatUrl,
+      serverConfig: configuration.serverConfig,
+      salt: saltManager.salt,
+      playerRegistry: registries.playerRegistry,
+    );
+    ServerContext context = ServerContext(
+      configuration: configuration,
+      registries: registries,
+      heartbeat: heartbeat,
+      saltManager: saltManager,
+      defaultChatroom: Chatroom(name: "default"),
+    );
 
-    context.playerRegistry!.emitter.on("register", (Player player) {
+    registries.playerRegistry.emitter.on("register", (Player player) {
       context.defaultChatroom?.addPlayer(player);
       player.emitter.on("destroy", (data) {
         context.defaultChatroom?.removePlayer(player);
@@ -87,11 +118,10 @@ class ServerContext {
     });
 
     context.server = Server(
-      context.serverConfig!.host,
-      context.serverConfig!.port,
+      configuration.serverConfig.host,
+      configuration.serverConfig.port,
       context: context,
     );
-    context.commandRegistry = CommandRegistry();
 
     return context;
   }

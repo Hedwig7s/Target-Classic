@@ -17,6 +17,8 @@ class SaltManager {
   late final String _salt;
   static final Logger _logger = Logger("SaltManager");
 
+  final bool saveable;
+
   static bool isValidSaltChar(int byte) {
     return (byte >= 48 && byte <= 57) || // 0-9
         (byte >= 65 && byte <= 90) || // A-Z
@@ -58,7 +60,11 @@ class SaltManager {
     return ascii.decode(bytes);
   }
 
-  SaltManager({this.cachePath = defaultCachePath, String? salt}) {
+  SaltManager({
+    this.cachePath = defaultCachePath,
+    String? salt,
+    this.saveable = true,
+  }) {
     if (salt != null) {
       if (!isValidSalt(salt)) {
         throw Exception("Invalid salt provided");
@@ -92,6 +98,8 @@ class SaltManager {
   String get salt => _salt;
 
   Future<void> cacheSalt() async {
+    if (!saveable) return;
+
     if (_salt.contains("\n")) {
       throw Exception(
         "Salt may not contain newline", // Newline seperates the salt and timestamp
@@ -103,7 +111,7 @@ class SaltManager {
     );
   }
 
-  static Future<String?> readSalt({cachePath = defaultCachePath}) async {
+  static Future<String?> readSalt({String cachePath = defaultCachePath}) async {
     List<String> data = await File(cachePath).readAsLines();
     if (data.length != 2) throw Exception("Invalid salt file");
     String salt = data[0];
@@ -139,6 +147,7 @@ class SaltManager {
   }
 
   void startSaltSaver() {
+    if (!saveable) return;
     _saltSaver?.cancel();
     cacheSalt(); // Cache immediately on start
     _saltSaver = Timer(Duration(minutes: 1), () {
@@ -180,6 +189,7 @@ class Heartbeat {
   final String heartbeatUrl;
   final Duration interval = Duration(seconds: 10);
   final Logger logger = Logger("Heartbeat");
+  final bool autosaveSalt;
   String? gameUrl;
   bool active = false;
   Timer? _timer;
@@ -193,15 +203,46 @@ class Heartbeat {
     required this.serverConfig,
     required String salt,
     required this.playerRegistry,
-  }) : saltManager = SaltManager(salt: salt);
+    this.autosaveSalt = true,
+  }) : saltManager = SaltManager(salt: salt, saveable: autosaveSalt);
 
   Future<void> send(HeartbeatInfo info) async {
-    // Unchanged
+    try {
+      final request = await HttpClient().getUrl(
+        Uri.parse(
+          Uri.encodeFull(
+            "${heartbeatUrl.replaceAll(RegExp(r'\/$'), '')}/?${info.toParams()}",
+          ),
+        ),
+      );
+      final response = await request.close();
+      if (response.statusCode != 200) {
+        logger.warning(
+          "Failed to send heartbeat: ${response.statusCode} ${response.reasonPhrase}",
+        );
+        return;
+      }
+      response.transform(utf8.decoder).listen((data) {
+        if (data.startsWith("{")) {
+          var jsonResponse = json.decode(data);
+          if (jsonResponse['status'] == "fail") {
+            logger.warning(
+              "Failed to send heartbeat: ${jsonResponse['errors']}",
+            );
+          }
+        } else if (gameUrl != data) {
+          gameUrl = data;
+          logger.info("Game URL updated: $gameUrl");
+        }
+      });
+    } catch (e) {
+      logger.warning('Error sending heartbeat: $e');
+    }
   }
 
   void start() {
     active = true;
-    saltManager.startSaltSaver();
+    if (autosaveSalt) saltManager.startSaltSaver();
     callback(Timer timer) async {
       if (!active) {
         timer.cancel();
@@ -218,6 +259,7 @@ class Heartbeat {
       );
       await send(info);
     }
+
     _timer = Timer.periodic(interval, callback);
     callback.call(_timer!);
   }

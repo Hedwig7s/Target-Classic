@@ -16,7 +16,8 @@ void registerGetEntity(ServerContext serverContext) {
             List<dynamic> args,
           ) {
             var entity = args[1] as Entity;
-            int? id = entity.ids[context.serverContext?.entityRegistry];
+            int? id =
+                entity.ids[context.serverContext.registries.entityRegistry];
             context.player.sendMessage(
               Message(
                 "Entity $id\nName: ${entity.name}\nID: $id\nFancy Name: ${entity.fancyName}\nPosition: ${entity.position}\nWorld: ${entity.world?.name}",
@@ -27,5 +28,5 @@ void registerGetEntity(ServerContext serverContext) {
           as ParameterParser,
     ),
   );
-  serverContext.commandRegistry?.register(command);
+  serverContext.registries.commandRegistry.register(command);
 }
