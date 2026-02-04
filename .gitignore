@@ -11,5 +11,5 @@
 .env
 cachedsalt.txt
 /plugins
-/assets
 /data
+build/
