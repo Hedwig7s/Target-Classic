@@ -64,7 +64,7 @@ void main() async {
     Logger.root.info(
       "Server shutting down...",
     ); // TODO: If commands are implemented, move shutdown to a seperate function
-    await server.stop();
+    await server.stop(); // TODO: Same player data
     var worlds = context.registries.worldRegistry.getAll();
     var futures = <Future>[];
     for (var world in worlds) {

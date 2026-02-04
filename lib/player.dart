@@ -13,6 +13,7 @@ import 'package:target_classic/networking/connection.dart';
 import 'package:target_classic/networking/packet.dart';
 import 'package:target_classic/networking/protocol.dart';
 import 'package:target_classic/networking/packetdata.dart';
+import 'package:target_classic/playerdata.dart';
 import 'package:target_classic/playerentity.dart';
 import 'package:target_classic/registries/namedregistry.dart';
 import 'package:target_classic/utility/clearemitter.dart';
@@ -50,11 +51,12 @@ class Player implements Nameable<String> {
   final String name;
   String fancyName;
   Connection? connection;
-  ServerContext? context;
+  ServerContext? context; // Maybe shouldn't be optional?
   PlayerEntity? entity;
   Chatroom? chatroom;
   World? world;
   bool destroyed = false;
+  PlayerData? playerData;
   @override
   final EventEmitter emitter = EventEmitter();
   final PlayerListenedWorldEvents worldEvents = PlayerListenedWorldEvents();
@@ -67,6 +69,7 @@ class Player implements Nameable<String> {
     this.context,
     this.connection,
     PlayerCooldowns? cooldowns,
+    addData = true,
   }) : assert(name.isNotEmpty, "Name must not be empty"),
        logger = Logger("Player $name"),
        cooldowns = cooldowns ?? PlayerCooldowns() {
@@ -79,6 +82,18 @@ class Player implements Nameable<String> {
     connection?.emitter.on("closed", (data) {
       destroy();
     });
+    if (addData && connection == null) {
+      logger.warning("Cannot add data without a connection!");
+      return;
+    }
+    if (addData) {
+      playerData = PlayerData.fromDatabase(
+        context!.databases!,
+        name,
+        connection!.socket.remoteAddress.address,
+      );
+      playerData!.save(); // TODO: Autosave
+    }
   }
 
   void identify() {

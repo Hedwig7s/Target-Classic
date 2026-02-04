@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
+import 'package:sqlite3/sqlite3.dart';
 import 'package:target_classic/chat/chatroom.dart';
 
 import 'package:target_classic/config/serverconfig.dart';
@@ -24,6 +25,7 @@ typedef PlayerRegistry = NamedRegistry<String, Player>;
 typedef EntityRegistry = IncrementalRegistry<Entity>;
 
 class ServerConfiguration {
+  // FIXME: Name of class is similar to ServerConfig
   final ServerConfig serverConfig;
   ServerConfiguration({required this.serverConfig});
 }
@@ -45,6 +47,12 @@ class ServerRegistries {
        commandRegistry = commandRegistry ?? CommandRegistry();
 }
 
+class ServerDatabases {
+  Database playerData;
+
+  ServerDatabases({required this.playerData});
+}
+
 class ServerContext {
   Chatroom? defaultChatroom; // FIXME: Consider making final
   Server? server;
@@ -52,6 +60,7 @@ class ServerContext {
   Heartbeat? heartbeat;
   final ServerConfiguration configuration;
   final ServerRegistries registries;
+  ServerDatabases? databases;
 
   ServerContext({
     required this.configuration,
@@ -60,6 +69,7 @@ class ServerContext {
     this.server,
     this.saltManager,
     this.heartbeat,
+    this.databases,
   }) : registries = registries ?? ServerRegistries();
 
   static Future<ServerContext> defaultContext() async {
@@ -73,6 +83,35 @@ class ServerContext {
       Logger.root.warning("Failed to load config: $e");
       configuration = ServerConfiguration(serverConfig: ServerConfig());
     }
+    Directory("data").create(); // TODO: Remove hardcoding
+    final playerData = sqlite3.open("data/playerdata.db");
+
+    // FIXME: Should be seperate from context creation
+    playerData.execute("""
+      PRAGMA foreign_keys = ON;
+      CREATE TABLE IF NOT EXISTS player_data (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE,
+        first_join TEXT NOT NULL,
+        last_join TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS player_ips (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          player_id INTEGER NOT NULL,
+
+          ip_address TEXT NOT NULL,
+
+          last_seen TEXT DEFAULT CURRENT_TIMESTAMP,
+
+          UNIQUE(player_id, ip_address),
+
+          FOREIGN KEY (player_id) REFERENCES player_data(id) ON DELETE CASCADE
+      );
+      """);
+
+    final databases = ServerDatabases(playerData: playerData);
+
     configuration.serverConfig.saveToFile();
     final registries = ServerRegistries();
     late final World defaultWorld;
@@ -107,7 +146,8 @@ class ServerContext {
       registries: registries,
       heartbeat: heartbeat,
       saltManager: saltManager,
-      defaultChatroom: Chatroom(name: "default"),
+      defaultChatroom: Chatroom(name: "default"), // TODO: Should be a registry
+      databases: databases,
     );
 
     registries.playerRegistry.emitter.on("register", (Player player) {
