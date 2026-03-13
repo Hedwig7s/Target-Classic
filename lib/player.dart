@@ -13,7 +13,7 @@ import 'package:target_classic/networking/connection.dart';
 import 'package:target_classic/networking/packet.dart';
 import 'package:target_classic/networking/protocol.dart';
 import 'package:target_classic/networking/packetdata.dart';
-import 'package:target_classic/playerdata.dart';
+import 'package:target_classic/databases/sqlite/playerdata.dart';
 import 'package:target_classic/playerentity.dart';
 import 'package:target_classic/registries/namedregistry.dart';
 import 'package:target_classic/utility/clearemitter.dart';
@@ -373,9 +373,10 @@ class Player implements Nameable<String> {
   void disconnect(String reason) {
     if (connection?.closed ?? false) return;
     logger.info("Disconnecting player $name");
-    if (!connection!.closed) {
+    if (!(connection?.closed ?? true)) {
       connection!.close(reason);
     }
+    this.playerData?.save();
     emitter.emit('disconnected');
   }
 

@@ -505,6 +505,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.0"
+  weak_map:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "754b50c238b05009ae777039e599b94c3bf96e7a"
+      url: "https://github.com/Hedwig7s/weak_map"
+    source: git
+    version: "4.0.1"
   web:
     dependency: transitive
     description:
