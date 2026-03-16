@@ -14,6 +14,7 @@ import 'package:target_classic/networking/packet.dart';
 import 'package:target_classic/networking/protocol.dart';
 import 'package:target_classic/networking/packetdata.dart';
 import 'package:target_classic/databases/sqlite/playerdata.dart';
+import 'package:target_classic/permissions/permissions.dart';
 import 'package:target_classic/playerentity.dart';
 import 'package:target_classic/registries/namedregistry.dart';
 import 'package:target_classic/utility/clearemitter.dart';
@@ -46,7 +47,7 @@ class PlayerCooldowns {
           move ?? Cooldown(maxCount: 30, resetTime: const Duration(seconds: 1));
 }
 
-class Player implements Nameable<String> {
+class Player with Permissions implements Nameable<String> {
   @override
   final String name;
   String fancyName;
@@ -376,7 +377,7 @@ class Player implements Nameable<String> {
     if (!(connection?.closed ?? true)) {
       connection!.close(reason);
     }
-    this.playerData?.save();
+    playerData?.save();
     emitter.emit('disconnected');
   }
 
